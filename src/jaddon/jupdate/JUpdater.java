@@ -606,7 +606,7 @@ public class JUpdater {
     
     /**
      * This is the function which makes the update
-     * @param First: Boolean True if the program gets reinstalled, False if not; Second: Boolean True if dialogs should be shown, False if not; Third: File already downloaded; Fourth: File old file
+     * @param extras First: Boolean True if the program gets reinstalled, False if not; Second: Boolean True if dialogs should be shown, False if not; Third: File already downloaded; Fourth: File old file
      */
     public File downloadUpdate(Object... extras) {
         if(!enabled) {
@@ -915,7 +915,7 @@ public class JUpdater {
 
     /**
      * Returns the normal urls
-     * @return HashMap<String, String> URLs
+     * @return HashMap String, String URLs
      */
     public HashMap<String, String> getURLs() {
         HashMap<String, String> urls_map = new HashMap<>();
