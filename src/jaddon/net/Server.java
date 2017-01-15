@@ -17,9 +17,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import javax.swing.Timer;
@@ -48,7 +45,7 @@ public class Server implements ActionListener, Serializable {
     private int max_client_reloading_time = 1000;
     private int max_client_reloading_tries = 3;
     private Duration max_reload_duration = Duration.ofMillis(1000);
-    private final Timer timer = new Timer(2500, this);
+    private final Timer timer = new Timer(1000, this);
     private Instant instant_started = null;
     private Instant instant_stopped = null;
     
@@ -84,17 +81,17 @@ public class Server implements ActionListener, Serializable {
                 instant_started = Instant.now();
                 started = true;
                 registerServerPort(port);
-                StaticStandard.log("Started server on port: " + port);
+                StaticStandard.log("[SERVER] Started server on port: " + port);
                 resetThreadReceive();
                 startThread(thread_receive);
                 timer.start();
             } else {
                 instant_started = null;
-                StaticStandard.logErr("Failed starting server on port: " + port + ", port already binded");
+                StaticStandard.logErr("[SERVER] Failed starting server on port: " + port + ", port already binded");
             }
         } catch (Exception ex) {
             instant_started = null;
-            StaticStandard.logErr("Error while starting server: " + ex, ex);
+            StaticStandard.logErr("[SERVER] Error while starting server: " + ex, ex);
         }
         return this;
     }
@@ -115,20 +112,20 @@ public class Server implements ActionListener, Serializable {
             boolean unregistered = unregisterServerPort(port);
             if(unregistered && (!started && !running)) {
                 instant_stopped = Instant.now();
-                StaticStandard.log("Stopped server on port: " + port);
+                StaticStandard.log("[SERVER] Stopped server on port: " + port);
             } else if(started || running) {
                 instant_stopped = null;
-                StaticStandard.logErr("Failed stopping server on port: " + port + ", server is running anyway");
+                StaticStandard.logErr("[SERVER] Failed stopping server on port: " + port + ", server is running anyway");
             } else if(!unregistered) {
                 instant_stopped = null;
-                StaticStandard.logErr("Failed stopping server on port: " + port + ", port already unregistered");
+                StaticStandard.logErr("[SERVER] Failed stopping server on port: " + port + ", port already unregistered");
             } else {
                 instant_stopped = null;
-                StaticStandard.logErr("Failed stopping server on port: " + port);
+                StaticStandard.logErr("[SERVER] Failed stopping server on port: " + port);
             }
         } catch (Exception ex){
             instant_stopped = null;
-            StaticStandard.logErr("Error while stopping server: " + ex, ex);
+            StaticStandard.logErr("[SERVER] Error while stopping server: " + ex, ex);
         } 
         return this;
     }
@@ -245,11 +242,11 @@ public class Server implements ActionListener, Serializable {
                                 }
                             }
                             if(!isconnected) {
-                                StaticStandard.logErr(String.format("Client %s timed out (after %d tries with %d ms)", formatAddress(client.getInetaddress()), max_client_reloading_tries, max_client_reloading_time));
+                                StaticStandard.logErr(String.format("[SERVER] Client %s timed out (after %d tries with %d ms)", formatAddress(client.getInetaddress()), max_client_reloading_tries, max_client_reloading_time));
                                 clients_disconnected.add(client);
                             }
                         } catch (Exception ex) {
-                            StaticStandard.logErr("Error while reloding client " + formatAddress(client.getInetaddress()) + ": " + ex);
+                            StaticStandard.logErr("[SERVER] Error while reloding client " + formatAddress(client.getInetaddress()) + ": " + ex);
                         }
                     }
                     
@@ -278,7 +275,7 @@ public class Server implements ActionListener, Serializable {
                 logout(client, true, instant_now);
             }
         } catch (Exception ex) {
-            StaticStandard.logErr("Error while reloading clients: " + ex, ex);
+            StaticStandard.logErr("[SERVER] Error while reloading clients: " + ex, ex);
         }
     }
     
@@ -293,7 +290,7 @@ public class Server implements ActionListener, Serializable {
                 try {
                     inputprocessor.clientLoggedIn(client, instant_now);
                 } catch (Exception ex) {
-                    StaticStandard.logErr(String.format("Error while logging in client %s: %s", formatAddress(client.getInetaddress()), ex), ex);
+                    StaticStandard.logErr(String.format("[SERVER] Error while logging in client %s: %s", formatAddress(client.getInetaddress()), ex), ex);
                 }
             }
             
@@ -315,10 +312,10 @@ public class Server implements ActionListener, Serializable {
                         clients_connected.remove(client);
                         client.stop();
                     }
-                    StaticStandard.log(String.format("Client %s logged out", formatAddress(client.getInetaddress())));
+                    StaticStandard.log(String.format("[SERVER] Client %s logged out", formatAddress(client.getInetaddress())));
                     inputprocessor.clientLoggedOut(client, instant_now);
                 } catch (Exception ex) {
-                    StaticStandard.logErr(String.format("Error while logging out client %s: %s", formatAddress(client.getInetaddress()), ex), ex);
+                    StaticStandard.logErr(String.format("[SERVER] Error while logging out client %s: %s", formatAddress(client.getInetaddress()), ex), ex);
                 }
             }
             
@@ -375,7 +372,7 @@ public class Server implements ActionListener, Serializable {
                         inputprocessor.processInput(object, client, instant);
                     }
                 } catch (Exception ex) {
-                    StaticStandard.logErr("Error while processing on server raw inputs: " + ex, ex);
+                    StaticStandard.logErr("[SERVER] Error while processing on server raw inputs: " + ex, ex);
                 }
             }
             
@@ -409,7 +406,7 @@ public class Server implements ActionListener, Serializable {
                 @Override
                 public synchronized void run() {
                     try {
-                        StaticStandard.log(String.format("Connection to %s established", formatAddress(client.getInetaddress())));
+                        StaticStandard.log(String.format("[SERVER] Connection to %s established", formatAddress(client.getInetaddress())));
                         login(client, instant_now);
                         ObjectOutputStream oos = client.getObjectOutputStream();
                         ObjectInputStream ois = client.getObjectInputStream();
@@ -419,14 +416,14 @@ public class Server implements ActionListener, Serializable {
                         }
                     } catch (IOException | ClassNotFoundException ex) {
                         if(ex != null && !ex.toString().startsWith("java.io.EOFException")) {
-                            StaticStandard.logErr("Error while processing socket: " + ex, ex);
+                            StaticStandard.logErr("[SERVER] Error while processing socket: " + ex, ex);
                         }
                     }                        
                     try {
                         if(clients_connected.containsKey(client)) {
                             clients_connected.remove(client);
                         }
-                        StaticStandard.log(String.format("Connection to %s closed", formatAddress(client.getInetaddress())));
+                        StaticStandard.log(String.format("[SERVER] Connection to %s closed", formatAddress(client.getInetaddress())));
                     } catch (Exception ex) {
                     }
                 }
@@ -436,7 +433,7 @@ public class Server implements ActionListener, Serializable {
             thread.start();
             return thread;
         } catch (Exception ex) {
-            StaticStandard.logErr("Error while processing socket: " + ex, ex);
+            StaticStandard.logErr("[SERVER] Error while processing socket: " + ex, ex);
             return null;
         }
     }
@@ -453,15 +450,15 @@ public class Server implements ActionListener, Serializable {
                     while(started && running) {
                         try {
                             final Socket socket = serversocket.accept();
-                            StaticStandard.log(String.format("Socket connected from: \"%s\"", socket.getInetAddress().getHostAddress()));
+                            StaticStandard.log(String.format("[SERVER] Socket connected from: \"%s\"", socket.getInetAddress().getHostAddress()));
                             processSocket(socket);
                         } catch (Exception ex) {
-                            StaticStandard.logErr("Error while socket connected to the server: " + ex, ex);
+                            StaticStandard.logErr("[SERVER] Error while socket connected to the server: " + ex, ex);
                         }
                     }
-                    StaticStandard.log("Server listener stopped");
+                    StaticStandard.log("[SERVER] Server listener stopped");
                 } catch (Exception ex) {
-                    StaticStandard.logErr("Error in the server receive thread: " + ex, ex);
+                    StaticStandard.logErr("[SERVER] Error in the server receive thread: " + ex, ex);
                 }
                 running = false;
             }

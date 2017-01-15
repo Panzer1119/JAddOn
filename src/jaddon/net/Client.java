@@ -37,13 +37,15 @@ public class Client implements ActionListener, Serializable {
     private InputProcessor inputprocessor = null;
     public Instant last_check = Instant.now();
     public boolean isServerClient = false;
-    private final Timer timer = new Timer(2500, this);
+    private final Timer timer = new Timer(1000, this);
     private int max_server_reloading_time = 1000;
     private int max_server_reloading_tries = 3;
     private Duration max_reload_duration = Duration.ofMillis(1000);
     private Instant last_server_check = Instant.now();
     private boolean ischecking_server = false;
     private boolean disconnected = false;
+    private boolean reconnect_after_connection_loss = false;
+    private int reconnection_tries = 3;
     
     public Client(Socket socket) {
         init();
@@ -75,10 +77,7 @@ public class Client implements ActionListener, Serializable {
     }
     
     public final Client start() {
-        timer.start();
-        connect();
-        resetThreadReceive();
-        Server.startThread(thread_receive);
+        startIntern(0);
         return this;
     }
     
@@ -89,9 +88,21 @@ public class Client implements ActionListener, Serializable {
         return this;
     }
     
-    private final Client connect() {
+    private final int startIntern(int times) {
+        timer.start();
+        times = connect(times);
+        resetThreadReceive();
+        Server.startThread(thread_receive);
+        return times;
+    }
+    
+    private final int connect(int times) {
+        times++;
+        if(times > reconnection_tries) {
+            return times;
+        }
         try {
-            StaticStandard.log("Started connecting to " + formatAddressAndPort());
+            StaticStandard.log(String.format("[CLIENT] Started connecting to %s (Try: %d)", formatAddressAndPort(), times));
             socket = new Socket(inetaddress, port);
             setSocket(socket);
             connected = true;
@@ -99,12 +110,12 @@ public class Client implements ActionListener, Serializable {
                 send(MessageState.LOGIN);
             }
             disconnected = false;
-            isConnected();
-            StaticStandard.log("Connected successfully to " + formatAddressAndPort());
+            StaticStandard.log("[CLIENT] Connected successfully to " + formatAddressAndPort());
         } catch (Exception ex) {
-            StaticStandard.logErr("Error while connecting to server: " + ex, ex);
+            StaticStandard.logErr("[CLIENT] Error while connecting to server: " + ex);
         }
-        return this;
+        isConnected(times);
+        return times;
     }
     
     private final Client disconnect() {
@@ -117,14 +128,14 @@ public class Client implements ActionListener, Serializable {
                     send(MessageState.LOGOUT);
                 }
             } catch (Exception ex) {
-                //StaticStandard.logErr("Error while sending logout message: " + ex); //TODO Soll das so sein damit die Konsole schön aussieht?
+                //StaticStandard.logErr("[CLIENT] Error while sending logout message: " + ex); //TODO Soll das so sein damit die Konsole schön aussieht?
             }
             socket.close();
             connected = false;
-            StaticStandard.log("Disconnected successfully from " + formatAddressAndPort());
+            StaticStandard.log("[CLIENT] Disconnected successfully from " + formatAddressAndPort());
             disconnected = true;
         } catch (Exception ex) {
-            StaticStandard.logErr("Error while disconnecting from server: " + ex, ex);
+            StaticStandard.logErr("[CLIENT] Error while disconnecting from server: " + ex, ex);
         }
         return this;
     }
@@ -155,6 +166,22 @@ public class Client implements ActionListener, Serializable {
         this.max_reload_duration = max_reload_duration;
         return this;
     }
+
+    public boolean isReconnectingAfterConnectionLoss() {
+        return reconnect_after_connection_loss;
+    }
+
+    public void setReconnectAfterConnectionLoss(boolean reconnect_after_connection_loss) {
+        this.reconnect_after_connection_loss = reconnect_after_connection_loss;
+    }
+
+    public int getReconnectionTries() {
+        return reconnection_tries;
+    }
+
+    public void setReconnectionTries(int reconnection_tries) {
+        this.reconnection_tries = reconnection_tries;
+    }
     
     public final String formatAddress() {
         return Server.formatAddress(inetaddress);
@@ -164,9 +191,9 @@ public class Client implements ActionListener, Serializable {
         return Server.formatAddressAndPort(inetaddress, port);
     }
     
-    public final boolean isConnected() {
+    private final void isConnected(int times) {
         if(ischecking_server) {
-            return connected;
+            return;
         }
         Runnable run_ = new Runnable() {
           
@@ -177,7 +204,7 @@ public class Client implements ActionListener, Serializable {
                     final Instant instant_now = Instant.now();
                     final Instant instant_old = last_server_check;
                     boolean isconnected = true;
-                    //StaticStandard.logErr("Checking connection to the server");
+                    //StaticStandard.logErr("[CLIENT] Checking connection to the server");
                     for(int i = 0; i < max_server_reloading_tries; i++) {
                         send(MessageState.AREYOUALIVE);
                         while(instant_old.equals(last_server_check)) {
@@ -206,18 +233,20 @@ public class Client implements ActionListener, Serializable {
                     StaticStandard.logErr("[CLIENT] Error while checking connection: " + ex, ex);
                 }
                 ischecking_server = false;
+                if(!connected) {
+                    StaticStandard.logErr(String.format("[CLIENT] Server %s timed out (after %d tries with %d ms)", Server.formatAddressAndPort(inetaddress, port), max_server_reloading_tries, max_server_reloading_time));
+                    stop();
+                    if(reconnect_after_connection_loss) {
+                        startIntern(times);
+                    }
+                } else {
+                    //StaticStandard.logErr("[CLIENT] Server is connected");
+                }
             }
             
         };
         Thread thread_ = StaticStandard.execute(run_);
         thread_.setName("Thread-Client-Reload");
-        if(!connected) {
-            StaticStandard.logErr(String.format("Server %s timed out (after %d tries with %d ms)", Server.formatAddressAndPort(inetaddress, port), max_server_reloading_tries, max_server_reloading_time));
-            stop();
-        } else {
-            //StaticStandard.logErr("Server is connected");
-        }
-        return connected;
     }
     
     public final Socket getSocket() {
@@ -273,7 +302,7 @@ public class Client implements ActionListener, Serializable {
                         inputprocessor.processInput(object, instant);
                     }
                 } catch (Exception ex) {
-                    StaticStandard.logErr("Error while processing on client raw inputs: " + ex, ex);
+                    StaticStandard.logErr("[CLIENT] Error while processing on client raw inputs: " + ex, ex);
                 }
             }
             
@@ -290,12 +319,12 @@ public class Client implements ActionListener, Serializable {
         try {
             oos = new ObjectOutputStream(socket.getOutputStream());
         } catch (Exception ex) {
-            StaticStandard.logErr("Error while setting object output stream: " + ex, ex);
+            StaticStandard.logErr("[CLIENT] Error while setting object output stream: " + ex);
         }
         try {
             ois = new ObjectInputStream(socket.getInputStream());
         } catch (Exception ex) {
-            StaticStandard.logErr("Error while setting object input stream: " + ex, ex);
+            StaticStandard.logErr("[CLIENT] Error while setting object input stream: " + ex);
         }
         return this;
     }
@@ -306,14 +335,14 @@ public class Client implements ActionListener, Serializable {
                 oos.close();
             }
         } catch (Exception ex) {
-            StaticStandard.logErr("Error while closing old object output stream: " + ex, ex);
+            //StaticStandard.logErr("[CLIENT] Error while closing old object output stream: " + ex);
         }
         try {
             if(ois != null) {
                 ois.close();
             }
         } catch (Exception ex) {
-            StaticStandard.logErr("Error while closing old object input stream: " + ex, ex);
+            //StaticStandard.logErr("[CLIENT] Error while closing old object input stream: " + ex);
         }
         return this;
     }
@@ -365,7 +394,7 @@ public class Client implements ActionListener, Serializable {
             oos.flush();
             return true;
         } catch (Exception ex) {
-            //StaticStandard.logErr("Error while sending: " + ex, ex); //TODO sieht heslig aus?
+            //StaticStandard.logErr("[CLIENT] Error while sending: " + ex, ex); //TODO sieht heslig aus?
             return false;
         }
     }
@@ -378,7 +407,7 @@ public class Client implements ActionListener, Serializable {
                 this.inetaddress = InetAddress.getLocalHost();
             } catch (Exception ex) {
                 this.inetaddress = null;
-                StaticStandard.logErr("Error while setting localhost as inetaddress: " + ex, ex);
+                StaticStandard.logErr("[CLIENT] Error while setting localhost as inetaddress: " + ex, ex);
             }
         }
         return this;
@@ -417,12 +446,12 @@ public class Client implements ActionListener, Serializable {
                             final Object object = ois.readObject();
                             processInputRAW(object, Instant.now());
                         } catch (IOException | ClassNotFoundException ex) {
-                            StaticStandard.logErr("Error while receiving: " + ex);
+                            StaticStandard.logErr("[CLIENT] Error while receiving: " + ex);
                         }
                     }
-                    StaticStandard.log(String.format("Connection to server %s closed", Server.formatAddressAndPort(inetaddress, port)));
+                    StaticStandard.log(String.format("[CLIENT] Connection to server %s closed", Server.formatAddressAndPort(inetaddress, port)));
                 } catch (Exception ex) {
-                    StaticStandard.logErr("Error in the client receive thread: " + ex, ex);
+                    StaticStandard.logErr("[CLIENT] Error in the client receive thread: " + ex, ex);
                 }
             }
 
@@ -436,7 +465,7 @@ public class Client implements ActionListener, Serializable {
     @Override
     public void actionPerformed(ActionEvent e) {
         if(e.getSource() == timer) {
-            isConnected();
+            isConnected(0);
         }
     }
     
