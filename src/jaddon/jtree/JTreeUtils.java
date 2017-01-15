@@ -176,9 +176,9 @@ public class JTreeUtils {
     /**
      * Node == The thing that can be expanded Point == An object in the tree
      *
-     * @param tree
-     * @param path
-     * @return
+     * @param tree JTree Tree
+     * @param data ArrayList Object Data
+     * @return Boolean
      */
     public static boolean isSelectedPathNode(JTree tree, ArrayList<Object> data) {
         TreePath tp = tree.getSelectionPath();
