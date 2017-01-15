@@ -27,14 +27,35 @@ import javax.swing.Timer;
  */
 public class Server implements ActionListener, Serializable {
     
+    /**
+     * Integer Standard port
+     */
     public static final int STANDARDPORT = 1234;
+    /**
+     * Integer Minimum port
+     */
     public static final int PORTMIN = 1000;
+    /**
+     * Integer Maximum port
+     */
     public static final int PORTMAX = 0xFFFF;
+    /**
+     * Integer Delay for the thread stop function
+     */
     public static final int THREADSTOPWAITTIME = 10;
+    /**
+     * Integer Maximum time to be wait for of stopping a thread
+     */
     public static final int MAXTHREADSTOPTIME = 5000;
     
+    /**
+     * ArrayList Integer All used ports
+     */
     public static final ArrayList<Integer> PORTS = new ArrayList<>();
     
+    /**
+     * Server Instance of this object
+     */
     public final Server server = this;
     private ServerSocket serversocket = null;
     private final HashMap<Client, Thread> clients_connected = new HashMap<>();
@@ -49,6 +70,10 @@ public class Server implements ActionListener, Serializable {
     private Instant instant_started = null;
     private Instant instant_stopped = null;
     
+    /**
+     * Constructor for the Server
+     * @param port Integer Port
+     */
     public Server(int port) {
         init();
         setPort(port);
@@ -58,6 +83,10 @@ public class Server implements ActionListener, Serializable {
         resetThreadReceive();
     }
     
+    /**
+     * Starts the server within an extra thread
+     * @return Thread The Thread that is starting the Server
+     */
     public final Thread startWThread() {
         Runnable run = new Runnable() {
             
@@ -72,6 +101,10 @@ public class Server implements ActionListener, Serializable {
         return thread;
     }
     
+    /**
+     * Starts the server
+     * @return Server This Server
+     */
     public final Server start() {
         try {
             boolean port_valid = checkPortAvailable(port);
@@ -96,6 +129,10 @@ public class Server implements ActionListener, Serializable {
         return this;
     }
     
+    /**
+     * Stops the server
+     * @return Server This Server
+     */
     public final Server stop() {
         if(!started) {
             return this;
@@ -130,6 +167,11 @@ public class Server implements ActionListener, Serializable {
         return this;
     }
     
+    /**
+     * Sets the port
+     * @param port Intger Port
+     * @return Server This Server
+     */
     public final Server setPort(int port) {
         if(!checkPort(port)) {
             port = STANDARDPORT;
@@ -138,56 +180,108 @@ public class Server implements ActionListener, Serializable {
         return this;
     }
     
+    /**
+     * Returns the port
+     * @return Integer Port
+     */
     public final int getPort() {
         return port;
     }
     
+    /**
+     * Returns the used serversocket
+     * @return ServerSocket ServerSocket
+     */
     public final ServerSocket getServerSocket() {
         return serversocket;
     }
 
+    /**
+     * Returns the maximum waiting time for a client to respond
+     * @return Integer Maximum client responding time
+     */
     public final int getMaxClientReloadingTime() {
         return max_client_reloading_time;
     }
 
+    /**
+     * Sets the maximum waiting time for a client to respond
+     * @param max_client_reloading_time Integer Maximum client responding time
+     * @return Server This Server
+     */
     public final Server setMaxClientReloadingTime(int max_client_reloading_time) {
         this.max_client_reloading_time = max_client_reloading_time;
         return this;
     }
 
+    /**
+     * Returns the maximum tries for server responds
+     * @return Integer Maximum server responding tries
+     */
     public final int getMaxClientReloadingTies() {
         return max_client_reloading_tries;
     }
 
+    /**
+     * Sets the maximum tries for client responds
+     * @param max_client_reloading_tries Integer Maximum client responding tries
+     * @return Server This Server
+     */
     public final Server setMaxClientReloadingTries(int max_client_reloading_tries) {
         this.max_client_reloading_tries = max_client_reloading_tries;
         return this;
     }
     
+    /**
+     * Returns the used inputprocessor used to process all inputs
+     * @return InputProcessor InputProcessor
+     */
+    public final InputProcessor getInputProcessor() {
+        return inputprocessor;
+    }
+    
+    /**
+     * Sets the inputprocessor used to process all inputs
+     * @param inputprocessor InputProcessor InputProcessor
+     * @return Server This Server
+     */
     public final Server setInputProcessor(InputProcessor inputprocessor) {
         this.inputprocessor = inputprocessor;
         return this;
     }
 
+    /**
+     * Return the maximum duration to be waited for a client
+     * @return Integer Maximum duration to be waited for a client
+     */
     public final Duration getMaxReloadDuration() {
         return max_reload_duration;
     }
 
+    /**
+     * Sets the maximum duration to be waited for a client
+     * @param max_reload_duration Integer Maximum duration to be waited for a client
+     * @return Server This Server
+     */
     public final Server setMaxReloadDuration(Duration max_reload_duration) {
         this.max_reload_duration = max_reload_duration;
         return this;
     }
 
+    /**
+     * Returns the timestamp when the client was started
+     * @return Instant Timestamp when the client was started
+     */
     public Instant getInstantStarted() {
         return instant_started;
     }
 
+    /**
+     * Returns the timestamp when the client was stopped
+     * @return Instant Timestamp when the client was stopped
+     */
     public Instant getInstantStopped() {
         return instant_stopped;
-    }
-    
-    public final InputProcessor getInputProcessor() {
-        return inputprocessor;
     }
     
     private final Thread reloadClientsWThread() {
@@ -380,6 +474,11 @@ public class Server implements ActionListener, Serializable {
         client.getExecutorInputProcessor().execute(run);
     }
     
+    /**
+     * Returns the client for an inetaddress
+     * @param inetaddress InetAddress InetAddress
+     * @return Client The client if it is connected
+     */
     public final Client getClient(InetAddress inetaddress) {
         try {
             for(Client client : clients_connected.keySet()) {
@@ -393,7 +492,7 @@ public class Server implements ActionListener, Serializable {
         }
     }
     
-    public final Thread processSocket(Socket socket) {
+    private final Thread processSocket(Socket socket) {
         if(socket == null) {
             return null;
         }
@@ -470,6 +569,11 @@ public class Server implements ActionListener, Serializable {
     
     private Thread thread_receive = null;
     
+    /**
+     * Registers a port to be used by a server
+     * @param port Integer Port
+     * @return Boolean True if the port was registered, False if not
+     */
     public synchronized final static boolean registerServerPort(int port) {
         if(checkPort(port) && checkPortAvailable(port)) {
             PORTS.add(port);
@@ -479,6 +583,11 @@ public class Server implements ActionListener, Serializable {
         }
     }
     
+    /**
+     * Unregisters a port to be no longer used by a server
+     * @param port Integer Port
+     * @return Boolean True if the port was unregistered, False if not
+     */
     public synchronized final static boolean unregisterServerPort(int port) {
         if(checkPort(port) && !checkPortAvailable(port)) {
             PORTS.remove(PORTS.indexOf(port));
@@ -488,6 +597,10 @@ public class Server implements ActionListener, Serializable {
         }
     }
     
+    /**
+     * Stops a thread completely
+     * @param thread Thread Thread to be stopped
+     */
     public synchronized final static void stopThread(Thread thread) {
         if(thread == null) {
             return;
@@ -506,6 +619,10 @@ public class Server implements ActionListener, Serializable {
         //StaticStandard.logErr(String.format("%s living: %b", thread.getName(), (thread.isAlive() && !thread.isInterrupted())));
     }
     
+    /**
+     * Starts a thread completely
+     * @param thread Thread Thread to be started
+     */
     public synchronized final static void startThread(Thread thread) {
         if(thread == null) {
             return;
@@ -513,23 +630,44 @@ public class Server implements ActionListener, Serializable {
         thread.start();
     }
     
-    public synchronized final static boolean clientConnected(Client client) {
+    private synchronized final static boolean clientConnected(Client client) {
         //TODO Client connection einzel abfrage basteln
         return false;
     }
     
+    /**
+     * Formats an inetaddress
+     * @param inetaddress InetAddress InetAddress to be formatted
+     * @return String the formatted inetaddress
+     */
     public final static String formatAddress(InetAddress inetaddress) {
         return String.format("\"%s\"", ((inetaddress != null) ? inetaddress.getHostAddress() : ""));
     }
     
+    /**
+     * Formats an inetaddress and a port
+     * @param inetaddress InetAddress InetAddress to be formatted
+     * @param port Integer Port to be formatted
+     * @return String the formatted inetaddress and port
+     */
     public final static String formatAddressAndPort(InetAddress inetaddress, int port) {
         return String.format("\"%s:%d\"", ((inetaddress != null) ? inetaddress.getHostAddress() : ""), port);
     }
     
+    /**
+     * Checks if a port is in the valid range
+     * @param port Integer Port
+     * @return Boolean True if the port is valid, False if not
+     */
     public static final boolean checkPort(int port) {
         return (port >= PORTMIN && port <= PORTMAX);
     }
     
+    /**
+     * Checks if a port is available (not used by a server already)
+     * @param port Integer Port
+     * @return Boolean True if the port is free, False if not
+     */
     public static final boolean checkPortAvailable(int port) {
         return !PORTS.contains(port);
     }
