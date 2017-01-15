@@ -1,0 +1,3 @@
+test=http://www.panzercraft.de/programmieren/test.txt
+files=http://www.panzercraft.de/programmieren/Files
+updater=http://www.panzercraft.de/programmieren/updater
