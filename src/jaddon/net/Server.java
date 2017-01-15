@@ -8,6 +8,7 @@ package jaddon.net;
 import jaddon.controller.StaticStandard;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -16,6 +17,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import javax.swing.Timer;
@@ -29,8 +33,8 @@ public class Server implements ActionListener, Serializable {
     public static final int STANDARDPORT = 1234;
     public static final int PORTMIN = 1000;
     public static final int PORTMAX = 0xFFFF;
-    public static final int THREADSTOPWAITTIME = 100;
-    public static final int MAXTHREADSTOPTIME = 1000;
+    public static final int THREADSTOPWAITTIME = 10;
+    public static final int MAXTHREADSTOPTIME = 5000;
     
     public static final ArrayList<Integer> PORTS = new ArrayList<>();
     
@@ -44,23 +48,31 @@ public class Server implements ActionListener, Serializable {
     private int max_client_reloading_time = 1000;
     private int max_client_reloading_tries = 3;
     private Duration max_reload_duration = Duration.ofMillis(1000);
-    private final Timer timer = new Timer(1000, this);
+    private final Timer timer = new Timer(2500, this);
+    private Instant instant_started = null;
+    private Instant instant_stopped = null;
     
     public Server(int port) {
+        init();
         setPort(port);
-        start();
+    }
+    
+    private final void init() {
+        resetThreadReceive();
     }
     
     public final Thread startWThread() {
         Runnable run = new Runnable() {
             
             @Override
-            public void run() {
+            public synchronized void run() {
                 start();
             }
             
         };
-        return StaticStandard.execute(run);
+        Thread thread = StaticStandard.execute(run);
+        thread.setName("Thread-Server-Start");
+        return thread;
     }
     
     public final Server start() {
@@ -69,26 +81,55 @@ public class Server implements ActionListener, Serializable {
             if(port_valid) {
                 stopThread(thread_receive);
                 serversocket = new ServerSocket(port);
+                instant_started = Instant.now();
                 started = true;
                 registerServerPort(port);
                 StaticStandard.log("Started server on port: " + port);
+                resetThreadReceive();
                 startThread(thread_receive);
                 timer.start();
             } else {
+                instant_started = null;
                 StaticStandard.logErr("Failed starting server on port: " + port + ", port already binded");
             }
         } catch (Exception ex) {
+            instant_started = null;
             StaticStandard.logErr("Error while starting server: " + ex, ex);
         }
         return this;
     }
     
     public final Server stop() {
-        timer.stop();
-        stopThread(thread_receive);
-        //FIXME DO THIS MIT entfernung des aktiven ports
-        started = false;
-        running = false;
+        if(!started) {
+            return this;
+        }
+        try {
+            timer.stop();
+            for(Client client : clients_connected.keySet()) {
+                stopThread(clients_connected.get(client));
+            }
+            clients_connected.clear();
+            serversocket.close();
+            started = !serversocket.isClosed();
+            resetThreadReceive();
+            boolean unregistered = unregisterServerPort(port);
+            if(unregistered && (!started && !running)) {
+                instant_stopped = Instant.now();
+                StaticStandard.log("Stopped server on port: " + port);
+            } else if(started || running) {
+                instant_stopped = null;
+                StaticStandard.logErr("Failed stopping server on port: " + port + ", server is running anyway");
+            } else if(!unregistered) {
+                instant_stopped = null;
+                StaticStandard.logErr("Failed stopping server on port: " + port + ", port already unregistered");
+            } else {
+                instant_stopped = null;
+                StaticStandard.logErr("Failed stopping server on port: " + port);
+            }
+        } catch (Exception ex){
+            instant_stopped = null;
+            StaticStandard.logErr("Error while stopping server: " + ex, ex);
+        } 
         return this;
     }
     
@@ -139,29 +180,31 @@ public class Server implements ActionListener, Serializable {
         this.max_reload_duration = max_reload_duration;
         return this;
     }
+
+    public Instant getInstantStarted() {
+        return instant_started;
+    }
+
+    public Instant getInstantStopped() {
+        return instant_stopped;
+    }
     
     public final InputProcessor getInputProcessor() {
         return inputprocessor;
-    }
-    
-    public static final boolean checkPort(int port) {
-        return (port >= PORTMIN && port <= PORTMAX);
-    }
-    
-    public static final boolean checkPortAvailable(int port) {
-        return !PORTS.contains(port);
     }
     
     private final Thread reloadClientsWThread() {
         Runnable run = new Runnable() {
             
             @Override
-            public void run() {
+            public synchronized void run() {
                 reloadClients();
             }
             
         };
-        return StaticStandard.execute(run);
+        Thread thread = StaticStandard.execute(run);
+        thread.setName("Thread-Server-Reload");
+        return thread;
     }
     
     private final void reloadClients() {
@@ -176,27 +219,29 @@ public class Server implements ActionListener, Serializable {
                 Runnable run = new Runnable() {
                     
                     @Override
-                    public void run() {
+                    public synchronized void run() {
                         try {
                             boolean isconnected = false;
-                            ObjectOutputStream oos = client.getObjectOutputStream();
                             for(int i = 0; i < max_client_reloading_tries; i++) {
-                                oos.writeObject(MessageState.AREYOUALIVE);
-                                int time = 10;
-                                int count = 0;
-                                Duration duration = Duration.between(instant_now, client.last_check);
-                                while(((count * time) < max_client_reloading_time) && (duration.isNegative() || duration.compareTo(max_reload_duration) > 0)) {
-                                    try {
-                                        duration = Duration.between(instant_now, client.last_check);
-                                        Thread.sleep(time);
-                                    } catch (Exception ex) {
+                                try {
+                                    client.send(MessageState.AREYOUALIVE);
+                                    int time = 10;
+                                    int count = 0;
+                                    Duration duration = Duration.between(instant_now, client.last_check);
+                                    while(((count * time) < max_client_reloading_time) && (duration.isNegative() || duration.compareTo(max_reload_duration) > 0)) {
+                                        try {
+                                            duration = Duration.between(instant_now, client.last_check);
+                                            Thread.sleep(time);
+                                        } catch (Exception ex) {
+                                        }
                                     }
-                                }
-                                if(!(duration.isNegative() || duration.compareTo(max_reload_duration) > 0)) {
-                                    isconnected = true;
-                                }
-                                if(isconnected) {
-                                    break;
+                                    if(!(duration.isNegative() || duration.compareTo(max_reload_duration) > 0)) {
+                                        isconnected = true;
+                                    }
+                                    if(isconnected) {
+                                        break;
+                                    }
+                                } catch (Exception ex) {
                                 }
                             }
                             if(!isconnected) {
@@ -230,23 +275,58 @@ public class Server implements ActionListener, Serializable {
                 }
             }
             for(Client client : clients_disconnected) {
-                logout(client, true);
+                logout(client, true, instant_now);
             }
         } catch (Exception ex) {
             StaticStandard.logErr("Error while reloading clients: " + ex, ex);
         }
     }
     
-    private final void logout(Client client, boolean remove) {
-        stopThread(clients_connected.get(client));
-        if(remove) {
-            clients_connected.remove(client);
-            client.stop();
+    private final Thread login(final Client client, final Instant instant_now) {
+        if(client == null) {
+            return null;
         }
-        StaticStandard.log(String.format("Client %s logged out", formatAddress(client.getInetaddress())));
+        Runnable run = new Runnable() {
+            
+            @Override
+            public synchronized void run() {
+                try {
+                    inputprocessor.clientLoggedIn(client, instant_now);
+                } catch (Exception ex) {
+                    StaticStandard.logErr(String.format("Error while logging in client %s: %s", formatAddress(client.getInetaddress()), ex), ex);
+                }
+            }
+            
+        };
+        return StaticStandard.execute(run);
     }
     
-    private final void processInputRAW(final Client client, final Object object, Instant instant) {
+    private final Thread logout(Client client, boolean remove, Instant instant_now) {
+        if(client == null) {
+            return null;
+        }
+        Runnable run = new Runnable() {
+            
+            @Override
+            public synchronized void run() {
+                try {
+                    stopThread(clients_connected.get(client));
+                    if(remove) {
+                        clients_connected.remove(client);
+                        client.stop();
+                    }
+                    StaticStandard.log(String.format("Client %s logged out", formatAddress(client.getInetaddress())));
+                    inputprocessor.clientLoggedOut(client, instant_now);
+                } catch (Exception ex) {
+                    StaticStandard.logErr(String.format("Error while logging out client %s: %s", formatAddress(client.getInetaddress()), ex), ex);
+                }
+            }
+            
+        };
+        return StaticStandard.execute(run);
+    }
+    
+    private final void processInputRAW(final Client client, final Object object, final Instant instant) {
         Runnable run = new Runnable() {
             
             @Override
@@ -257,35 +337,42 @@ public class Server implements ActionListener, Serializable {
                         Object answer = null;
                         switch(message) {
                             case LOGIN:
-                                answer = new ComMessage(MessageState.ANSWERNO);
+                                answer = MessageState.ANSWERNO;
                                 break;
                             case LOGOUT:
-                                answer = new ComMessage(MessageState.ANSWERYES);
-                                logout(client, true);
+                                answer = MessageState.ANSWERYES;
+                                logout(client, true, instant);
                                 break;
                             case BROADCAST:
-                                answer = new ComMessage(MessageState.ANSWERNO);
+                                answer = MessageState.ANSWERNO;
                                 break;
                             case ANSWERYES:
                                 break;
                             case ANSWERNO:
                                 break;
                             case PING:
-                                answer = new ComMessage(MessageState.ANSWERYES);
+                                answer = MessageState.ANSWERYES;
                                 break;
                             case AREYOUALIVE:
+                                answer = MessageState.IMALIVE;
+                                //StaticStandard.logErr("[SERVER] Client asks me alive");
                                 break;
                             case IMALIVE:
                                 client.last_check = instant;
+                                //StaticStandard.logErr("[SERVER] Client is alive");
                                 break;
                             default:
                                 break;
                         }
-                        if(answer != null) {
-                            client.getObjectOutputStream().writeObject(answer);
+                        try {
+                            if(answer != null) {
+                                client.send(answer);
+                            }
+                        } catch (Exception ex) {
+                            StaticStandard.logErr("[SERVER] Error while sending answer: " + ex); //TODO Soll das so sein damit die Konsole schön aussieht?
                         }
                     } else {
-                        inputprocessor.processInput(object);
+                        inputprocessor.processInput(object, client, instant);
                     }
                 } catch (Exception ex) {
                     StaticStandard.logErr("Error while processing on server raw inputs: " + ex, ex);
@@ -315,25 +402,32 @@ public class Server implements ActionListener, Serializable {
         }
         try {
             final Client client = new Client(socket);
+            final Instant instant_now = Instant.now();
             client.isServerClient = false;
             Thread thread = new Thread(new Runnable() {
 
                 @Override
                 public synchronized void run() {
                     try {
+                        StaticStandard.log(String.format("Connection to %s established", formatAddress(client.getInetaddress())));
+                        login(client, instant_now);
                         ObjectOutputStream oos = client.getObjectOutputStream();
                         ObjectInputStream ois = client.getObjectInputStream();
                         Object object = null;
                         while(((object = ois.readObject()) != null)) {
                             processInputRAW(client, object, Instant.now());
                         }
-                        StaticStandard.log(String.format("Connection to %s closed", client.getInetaddress().getHostAddress()));
-                    } catch (Exception ex) {
-                        StaticStandard.logErr("Error while processing socket: " + ex, ex);
-                    } finally {
+                    } catch (IOException | ClassNotFoundException ex) {
+                        if(ex != null && !ex.toString().startsWith("java.io.EOFException")) {
+                            StaticStandard.logErr("Error while processing socket: " + ex, ex);
+                        }
+                    }                        
+                    try {
                         if(clients_connected.containsKey(client)) {
                             clients_connected.remove(client);
                         }
+                        StaticStandard.log(String.format("Connection to %s closed", formatAddress(client.getInetaddress())));
+                    } catch (Exception ex) {
                     }
                 }
 
@@ -347,26 +441,37 @@ public class Server implements ActionListener, Serializable {
         }
     }
     
-    private final Thread thread_receive = new Thread(new Runnable() {
-        
-        @Override
-        public synchronized void run() {
-            try {
-                while(started && running) {
-                    try {
-                        final Socket socket = serversocket.accept();
-                        StaticStandard.log(String.format("Socket connected from: %s", socket.getInetAddress().getHostAddress()));
-                        processSocket(socket);
-                    } catch (Exception ex) {
-                        StaticStandard.logErr("Error while socket connected to the server: " + ex, ex);
+    private final Thread resetThreadReceive() {
+        stopThread(thread_receive);
+        running = false;
+        thread_receive = new Thread(new Runnable() {
+
+            @Override
+            public synchronized void run() {
+                try {
+                    running = true;
+                    while(started && running) {
+                        try {
+                            final Socket socket = serversocket.accept();
+                            StaticStandard.log(String.format("Socket connected from: \"%s\"", socket.getInetAddress().getHostAddress()));
+                            processSocket(socket);
+                        } catch (Exception ex) {
+                            StaticStandard.logErr("Error while socket connected to the server: " + ex, ex);
+                        }
                     }
+                    StaticStandard.log("Server listener stopped");
+                } catch (Exception ex) {
+                    StaticStandard.logErr("Error in the server receive thread: " + ex, ex);
                 }
-            } catch (Exception ex) {
-                StaticStandard.logErr("Error in the server receive thread: " + ex, ex);
+                running = false;
             }
-        }
+
+        });
+        thread_receive.setName("Thread-Server-Receiver");
+        return thread_receive;
+    }
     
-    });
+    private Thread thread_receive = null;
     
     public synchronized final static boolean registerServerPort(int port) {
         if(checkPort(port) && checkPortAvailable(port)) {
@@ -391,15 +496,17 @@ public class Server implements ActionListener, Serializable {
             return;
         }
         int times = 0;
-        while(thread.isAlive() && (times * THREADSTOPWAITTIME) <= MAXTHREADSTOPTIME) {
+        while((thread.isAlive() && !thread.isInterrupted()) && (times * THREADSTOPWAITTIME) <= MAXTHREADSTOPTIME) {
             try {
                 thread.interrupt();
                 thread.stop();
                 Thread.sleep(THREADSTOPWAITTIME);
             } catch (Exception ex) {
+                StaticStandard.logErr(String.format("[%s] Error while killing thread: %s", thread.getName(), ex), ex);
             }
             times++;
         }
+        //StaticStandard.logErr(String.format("%s living: %b", thread.getName(), (thread.isAlive() && !thread.isInterrupted())));
     }
     
     public synchronized final static void startThread(Thread thread) {
@@ -410,16 +517,24 @@ public class Server implements ActionListener, Serializable {
     }
     
     public synchronized final static boolean clientConnected(Client client) {
-        
+        //TODO Client connection einzel abfrage basteln
         return false;
     }
     
     public final static String formatAddress(InetAddress inetaddress) {
-        return String.format("\"%s", ((inetaddress != null) ? inetaddress.getHostAddress() : ""));
+        return String.format("\"%s\"", ((inetaddress != null) ? inetaddress.getHostAddress() : ""));
     }
     
     public final static String formatAddressAndPort(InetAddress inetaddress, int port) {
         return String.format("\"%s:%d\"", ((inetaddress != null) ? inetaddress.getHostAddress() : ""), port);
+    }
+    
+    public static final boolean checkPort(int port) {
+        return (port >= PORTMIN && port <= PORTMAX);
+    }
+    
+    public static final boolean checkPortAvailable(int port) {
+        return !PORTS.contains(port);
     }
 
     @Override
