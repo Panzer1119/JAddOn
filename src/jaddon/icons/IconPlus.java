@@ -25,6 +25,8 @@ public class IconPlus {
             if(path.endsWith(".ico")) {
                 List<BufferedImage> image = ICODecoder.read(IconPlus.class.getResourceAsStream(path));
                 icon = new ImageIcon(image.get(0));
+            } else if(path.endsWith(".gif")) {
+                icon = new ImageIcon(IconPlus.class.getResource(path));
             } else {
                 icon = new ImageIcon(ImageIO.read(IconPlus.class.getResourceAsStream(path)));
             }
