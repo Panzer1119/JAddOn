@@ -499,7 +499,7 @@ public class Server implements ActionListener, Serializable {
         try {
             final Client client = new Client(socket);
             final Instant instant_now = Instant.now();
-            client.isServerClient = false;
+            client.isServerClient = true;
             Thread thread = new Thread(new Runnable() {
 
                 @Override

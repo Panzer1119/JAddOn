@@ -301,7 +301,7 @@ public class Client implements ActionListener, Serializable {
                         }
                     }
                     connected = isconnected;
-                    //StaticStandard.logErr("[CLIENT] CONNECTION: " + connected);
+                     //StaticStandard.logErr("[CLIENT] CONNECTION: " + connected);
                 } catch (Exception ex) {
                     StaticStandard.logErr("[CLIENT] Error while checking connection: " + ex, ex);
                 }
@@ -491,7 +491,7 @@ public class Client implements ActionListener, Serializable {
      * @return Boolean True if it worked, False if not
      */
     public final boolean send(Object object) {
-        if(!connected) {
+        if(!connected && !isServerClient) {
             StaticStandard.logErr("[CLIENT] Cannot send object, server is not connected");
             return false;
         }
