@@ -265,7 +265,7 @@ public class Client implements ActionListener, Serializable {
     }
     
     private final void isConnected(int times) {
-        if(ischecking_server) {
+        if(ischecking_server || times > reconnection_tries) {
             return;
         }
         Runnable run_ = new Runnable() {
