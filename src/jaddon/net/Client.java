@@ -592,7 +592,11 @@ public class Client implements ActionListener, Serializable {
                             final Object object = ois.readObject();
                             processInputRAW(object, Instant.now());
                         } catch (IOException | ClassNotFoundException ex) {
-                            StaticStandard.logErr("[CLIENT] Error while receiving: " + ex);
+                            if(ex != null && !ex.toString().startsWith("java.net.SocketException")) {
+                                StaticStandard.logErr("[CLIENT] Error while receiving: " + ex);
+                            } else {
+                                break;
+                            }
                         }
                     }
                     StaticStandard.log(String.format("[CLIENT] Connection to server %s closed", Server.formatAddressAndPort(inetaddress, port)));
