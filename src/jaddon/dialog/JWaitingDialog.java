@@ -21,13 +21,19 @@ public class JWaitingDialog {
     public static final String PATHLOADINGSPIN = "/jaddon/icons/loading_spin.gif";
     public static final ImageIcon LOADINGSPIN = IconPlus.getImageIcon(PATHLOADINGSPIN);
     
+    public static final int CLOSED_OPTION = -1;
+    public static final int CANCEL_OPTION = 2;
+    public static final int STOPPED_OPTION = 3;
+    
     private JOptionPane pane = null;
     private Component parentComponent = null;
     private String message = "";
     private String title = "";
     private boolean running = false;
+    private boolean stopped = false;
     private final Object[] options = new Object[] {"Cancel"};
     private JDialog dialog = null;
+    private int defaultCloseOperation = JDialog.HIDE_ON_CLOSE;
     
     public JWaitingDialog(Component parentComponent, String message, String title) {
         this.parentComponent = parentComponent;
@@ -37,6 +43,7 @@ public class JWaitingDialog {
     
     public void close() {
         try {
+            stopped = true;
             Server.stopThread(thread_showing);
             dialog.setVisible(false);
             dialog.dispose();
@@ -56,28 +63,36 @@ public class JWaitingDialog {
         if(running) {
             return -1;
         }
+        stopped = false;
         thread_showing.start();
         try {
             thread_showing.join();
         } catch (Exception ex) {
         }
+        if(stopped) {
+            return STOPPED_OPTION;
+        }
         Object selected_value = pane.getValue();
         if(selected_value == null) {
-            return JOptionPane.CLOSED_OPTION;
+            return CLOSED_OPTION;
         } else if(options != null) {
-            for(int i = 0; i < options.length; i++) {
-                if(options[i].equals(selected_value)) {
-                    return i;
+            if(options.length > 0 && options[0].equals(selected_value)) {
+                return CANCEL_OPTION;
+            } else {
+                for(int i = 0; i < options.length; i++) {
+                    if(options[i].equals(selected_value)) {
+                        return i;
+                    }
                 }
             }
         } else if(options == null) {
             if(selected_value instanceof Integer) {
                 return ((Integer) selected_value).intValue();
             } else {
-                return JOptionPane.CLOSED_OPTION;
+                return CLOSED_OPTION;
             }
         }
-        return JOptionPane.CLOSED_OPTION;
+        return CLOSED_OPTION;
     }
 
     public JOptionPane getPane() {
@@ -110,6 +125,14 @@ public class JWaitingDialog {
         this.message = message;
         return this;
     }
+
+    public int getDefaultCloseOperation() {
+        return defaultCloseOperation;
+    }
+
+    public void setDefaultCloseOperation(int defaultCloseOperation) {
+        this.defaultCloseOperation = defaultCloseOperation;
+    }
     
     public boolean isRunning() {
         return running;
@@ -122,6 +145,7 @@ public class JWaitingDialog {
             createDialog();
             running = true;
             dialog = pane.createDialog(parentComponent, title);
+            dialog.setDefaultCloseOperation(defaultCloseOperation);
             dialog.setVisible(true);
             running = false;
         }
