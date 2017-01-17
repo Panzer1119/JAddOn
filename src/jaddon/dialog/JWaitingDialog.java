@@ -21,6 +21,7 @@ public class JWaitingDialog {
     public static final String PATHLOADINGSPIN = "/jaddon/icons/loading_spin.gif";
     public static final ImageIcon LOADINGSPIN = IconPlus.getImageIcon(PATHLOADINGSPIN);
     
+    public static final int RUNNING_OPTION = -2;
     public static final int CLOSED_OPTION = -1;
     public static final int CANCEL_OPTION = 2;
     public static final int STOPPED_OPTION = 3;
@@ -61,7 +62,7 @@ public class JWaitingDialog {
     
     public int showWaitingDialog() {
         if(running) {
-            return -1;
+            return RUNNING_OPTION;
         }
         stopped = false;
         thread_showing.start();
