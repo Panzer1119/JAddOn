@@ -19,6 +19,53 @@ import net.sf.image4j.codec.ico.ICODecoder;
  */
 public class IconPlus {
     
+    private ImageIcon imageicon = null;
+    private String path = "";
+    private int size = -1;
+    private boolean reloaded = false;
+    
+    public IconPlus(String path, int size) {
+        this.path = path;
+        this.size = size;
+        reloadImage();
+    }
+    
+    public ImageIcon reloadImage() {
+        if(reloaded) {
+            return imageicon;
+        }
+        try {
+            imageicon = getImageIcon(String.format(path, size));
+            reloaded = true;
+        } catch (Exception ex) {
+            reloaded = false;
+            StaticStandard.logErr("Error while loading image: " + ex, ex);
+        }
+        return imageicon;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+        reloaded = false;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+        reloaded = false;
+    }
+    
+    public ImageIcon getImageIcon() {
+        return reloadImage();
+    }
+    
     public static ImageIcon getImageIcon(String path) {
         try {
             ImageIcon icon = null;

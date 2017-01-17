@@ -8,7 +8,6 @@ package jaddon.dialog;
 import jaddon.icons.IconPlus;
 import jaddon.net.Server;
 import java.awt.Component;
-import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 
@@ -18,8 +17,25 @@ import javax.swing.JOptionPane;
  */
 public class JWaitingDialog {
     
-    public static final String PATHLOADINGSPIN = "/jaddon/icons/loading_spin.gif";
-    public static final ImageIcon LOADINGSPIN = IconPlus.getImageIcon(PATHLOADINGSPIN);
+    private static final String PATHLOADINGDEFAULT = "/jaddon/icons/loading/loading_%s_%%dpx.gif";
+    
+    public static enum Loading {
+        DEFAULT,
+        GEAR,
+        GEARS,
+        GPS,
+        HOURGLASS,
+        RELOAD,
+        RINGALT,
+        RIPPLE,
+        ROLLING,
+        SPIN,
+        SQUARES
+    }
+    
+    public static final int SIZESMALL = 64;
+    public static final int SIZESTANDARD = 96;
+    public static final int SIZEBIG = 128;
     
     public static final int RUNNING_OPTION = -2;
     public static final int CLOSED_OPTION = -1;
@@ -35,11 +51,15 @@ public class JWaitingDialog {
     private final Object[] options = new Object[] {"Cancel"};
     private JDialog dialog = null;
     private int defaultCloseOperation = JDialog.HIDE_ON_CLOSE;
+    private int loadingIconSize = SIZESTANDARD;
+    private Loading loadingIcon = Loading.SPIN;
+    private IconPlus iconplus = null;
     
     public JWaitingDialog(Component parentComponent, String message, String title) {
         this.parentComponent = parentComponent;
         this.message = message;
         this.title = title;
+        reloadIcon();
     }
     
     public void close() {
@@ -57,7 +77,7 @@ public class JWaitingDialog {
         if(running) {
             return;
         }
-        pane = new JOptionPane(message, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, LOADINGSPIN, options, null);
+        pane = new JOptionPane(message, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, iconplus.getImageIcon(), options, null);
     }
     
     public int showWaitingDialog() {
@@ -95,6 +115,10 @@ public class JWaitingDialog {
         }
         return CLOSED_OPTION;
     }
+    
+    public final void reloadIcon() {
+        iconplus = new IconPlus(String.format(PATHLOADINGDEFAULT, loadingIcon.toString().toLowerCase()), loadingIconSize);
+    }
 
     public JOptionPane getPane() {
         return pane;
@@ -131,8 +155,29 @@ public class JWaitingDialog {
         return defaultCloseOperation;
     }
 
-    public void setDefaultCloseOperation(int defaultCloseOperation) {
+    public JWaitingDialog setDefaultCloseOperation(int defaultCloseOperation) {
         this.defaultCloseOperation = defaultCloseOperation;
+        return this;
+    }
+
+    public int getLoadingIconSize() {
+        return loadingIconSize;
+    }
+
+    public JWaitingDialog setLoadingIconSize(int loadingIconSize) {
+        this.loadingIconSize = loadingIconSize;
+        iconplus.setSize(loadingIconSize);
+        return this;
+    }
+
+    public Loading getLoadingIcon() {
+        return loadingIcon;
+    }
+
+    public JWaitingDialog setLoadingIcon(Loading loadingIcon) {
+        this.loadingIcon = loadingIcon;
+        reloadIcon();
+        return this;
     }
     
     public boolean isRunning() {
