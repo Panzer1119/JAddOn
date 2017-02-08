@@ -5,6 +5,8 @@
  */
 package jaddon.math;
 
+import java.util.Arrays;
+
 /**
  *
  * @author Paul
@@ -101,8 +103,16 @@ public class Quaternion {
     }
     
     public Quaternion ln() {
+        final double scalar_old = getScalarPart();
+        final double[] vector_old = getVectorPart();
         final double norm = getNorm();
-        return copy().multiply(1.0 / norm).multiply(Math.acos(getScalarPart() / norm)).add(Quaternion.ofDouble(Math.log(norm)));
+        final double vectorNorm = getVectorNorm();
+        final double scalar_new = Math.log(norm);
+        final double arccos = Math.acos(scalar_old / norm);
+        final Quaternion normalized = normalize();
+        final double[] vector_new_1 = normalized.getVectorPart();
+        final double[] vector_new_2 = new double[] {vector_old[0] / vectorNorm * arccos, vector_old[1] / vectorNorm * arccos, vector_old[2] / vectorNorm * arccos};
+        return new Quaternion(scalar_new, vector_new_2);
     }
     
     public double getNorm() {
@@ -111,6 +121,14 @@ public class Quaternion {
     
     public double getBigNorm() {
         return ((q0 * q0) + (q1 * q1) + (q2 * q2) + (q3 * q3));
+    }
+    
+    public double getVectorNorm() {
+        return Math.sqrt(getBigVectorNorm());
+    }
+    
+    public double getBigVectorNorm() {
+        return ((q1 * q1) + (q2 * q2) + (q3 * q3));
     }
     
     public boolean isUnitQuaternion() {
