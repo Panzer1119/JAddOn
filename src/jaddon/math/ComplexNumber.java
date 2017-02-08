@@ -56,11 +56,11 @@ public class ComplexNumber {
         return complexnumber_new;
     }
     
-    public double norm() {
+    public double getNorm() {
         return Math.sqrt((getRealPart() * getRealPart()) + (getImaginaryPart() * getImaginaryPart()));
     }
     
-    public double magBig() {
+    public double getNormBig() {
         return ((getRealPart() * getRealPart()) + (getImaginaryPart() * getImaginaryPart()));
     }
     
@@ -77,8 +77,8 @@ public class ComplexNumber {
     }
     
     public ComplexNumber pow(ComplexNumber complexnumber) {
-        ComplexNumber complexnumber_new = new ComplexNumber(Math.cos((complexnumber.getRealPart() * arg()) + (0.5 * complexnumber.getImaginaryPart() * Math.log(magBig()))), Math.sin((complexnumber.getRealPart() * arg()) + (0.5 * complexnumber.getImaginaryPart() * Math.log(magBig()))));
-        complexnumber_new = complexnumber_new.multiply(new ComplexNumber(Math.pow(magBig(), complexnumber.getRealPart() * 0.5), 0.0));
+        ComplexNumber complexnumber_new = new ComplexNumber(Math.cos((complexnumber.getRealPart() * arg()) + (0.5 * complexnumber.getImaginaryPart() * Math.log(getNormBig()))), Math.sin((complexnumber.getRealPart() * arg()) + (0.5 * complexnumber.getImaginaryPart() * Math.log(getNormBig()))));
+        complexnumber_new = complexnumber_new.multiply(new ComplexNumber(Math.pow(getNormBig(), complexnumber.getRealPart() * 0.5), 0.0));
         complexnumber_new = complexnumber_new.multiply(new ComplexNumber(Math.pow(Math.E, -1.0 * complexnumber.getImaginaryPart() * arg()), 0.0));
         return complexnumber_new;
     }
