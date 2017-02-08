@@ -33,6 +33,10 @@ public class Quaternion {
         this(0, vector);
     }
     
+    public Quaternion copy() {
+        return new Quaternion(q0, q1, q2, q3);
+    }
+    
     public Quaternion add(Quaternion q) {
         return new Quaternion(q0 + q.q0,
                               q1 + q.q1,
@@ -54,14 +58,58 @@ public class Quaternion {
                               (q0 * q.q3) + (q1 * q.q2) - (q2 * q.q1) + (q3 * q.q0));
     }
     
+    public Quaternion multiply(double a) {
+        return new Quaternion(q0 * a,
+                              q1 * a,
+                              q2 * a,
+                              q3 * a);
+    }
+    
     public Quaternion getConjugate() {
-        return new Quaternion(q0,
-                              -1.0 * q1,
-                              -1.0 * q2,
-                              -1.0 * q3);
+        return new Quaternion(q0 * +1.0,
+                              q1 * -1.0,
+                              q2 * -1.0,
+                              q3 * -1.0);
+    }
+    
+    public Quaternion getInverse() {
+        final double squaredNorm = getBigNorm();
+        return new Quaternion(q0 / squaredNorm * +1.0,
+                              q1 / squaredNorm * -1.0,
+                              q2 / squaredNorm * -1.0,
+                              q3 / squaredNorm * -1.0);
+    }
+    
+    public Quaternion normalize() {
+        final double norm = getNorm();
+        return new Quaternion(q0 / norm,
+                              q1 / norm,
+                              q2 / norm,
+                              q3 / norm);
+    }
+    
+    public Quaternion getPositivePolarForm() {
+        if(q0 < 0.0) {
+            Quaternion q = normalize();
+            return new Quaternion(q.q0 * -1.0,
+                                  q.q1 * -1.0,
+                                  q.q2 * -1.0,
+                                  q.q3 * -1.0);
+        } else {
+            return this.normalize();
+        }
+    }
+    
+    public Quaternion ln() {
+        final double norm = getNorm();
+        return copy().multiply(1.0 / norm).multiply(Math.acos(getScalarPart() / norm)).add(Quaternion.ofDouble(Math.log(norm)));
     }
     
     public double getNorm() {
+        return Math.sqrt(getBigNorm());
+    }
+    
+    public double getBigNorm() {
         return ((q0 * q0) + (q1 * q1) + (q2 * q2) + (q3 * q3));
     }
     
@@ -157,6 +205,38 @@ public class Quaternion {
         } else {
             return false;
         }
+    }
+    
+    public static Quaternion ofInt(int q0) {
+        return ofInt(q0, 0, 0, 0);
+    }
+    
+    public static Quaternion ofInt(int q0, int q1, int q2, int q3) {
+        return new Quaternion(q0, q1, q2, q3);
+    }
+    
+    public static Quaternion ofLong(long q0) {
+        return ofLong(q0, 0L, 0L, 0L);
+    }
+    
+    public static Quaternion ofLong(long q0, long q1, long q2, long q3) {
+        return new Quaternion(q0, q1, q2, q3);
+    }
+    
+    public static Quaternion ofFloat(float q0) {
+        return ofFloat(q0, 0F, 0F, 0F);
+    }
+    
+    public static Quaternion ofFloat(float q0, float q1, float q2, float q3) {
+        return new Quaternion(q0, q1, q2, q3);
+    }
+    
+    public static Quaternion ofDouble(double q0) {
+        return ofDouble(q0, 0.0, 0.0, 0.0);
+    }
+    
+    public static Quaternion ofDouble(double q0, double q1, double q2, double q3) {
+        return new Quaternion(q0, q1, q2, q3);
     }
     
 }
