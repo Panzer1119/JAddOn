@@ -1,5 +1,6 @@
 jaddon.config
 jaddon.controller
+jaddon.dialog
 jaddon.exceptions
 jaddon.file
 jaddon.gps
