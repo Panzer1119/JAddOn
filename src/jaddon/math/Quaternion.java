@@ -5,8 +5,6 @@
  */
 package jaddon.math;
 
-import java.util.Arrays;
-
 /**
  *
  * @author Paul
