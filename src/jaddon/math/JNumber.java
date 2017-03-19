@@ -90,6 +90,10 @@ public class JNumber {
         final BigDecimal number_system_big = new BigDecimal("" + number_system.getSystem());
         final BigDecimal number_system_big_old = new BigDecimal("" + number.getNumberSystem().getSystem());
         String number_old = number.getNumber();
+        final boolean isNegative = number.getNumber().startsWith("-");
+        if(isNegative) {
+            number_old = number_old.substring(1);
+        }
         BigDecimal number_complete = BigDecimal.ZERO;
         String point = DOT;
         int index_point = number_old.indexOf(point);
@@ -161,6 +165,9 @@ public class JNumber {
                 number_end += getNumberSymbol(numbers_new_comma.get(i));
             }
         }
+        if(isNegative) {
+            number_end = "-" + number_end;
+        }
         JNumber number_new = new JNumber(number_end, number_system).setPeriodStart(loop_begin);
         return number_new;
     }
@@ -199,7 +206,7 @@ public class JNumber {
      * @param number String Number
      */
     public final JNumber setNumber(String number) {
-        this.number = number;
+        this.number = number.trim().replaceAll(" ", "").replaceAll("\t", "").replaceAll("\r", "").replaceAll("\n", "");
         return this;
     }
 
