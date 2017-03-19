@@ -5,6 +5,7 @@
  */
 package jaddon.math;
 
+import jaddon.controller.StaticStandard;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
@@ -15,6 +16,21 @@ import java.util.ArrayList;
  * @author Paul
  */
 public class JNumber {
+    
+    /**
+     * English Number splitter
+     */
+    public static final String DOT = ".";
+    
+    /**
+     * European Number splitter
+     */
+    public static final String COMMA = ",";
+    
+    /**
+     * The Period letter
+     */
+    public static final String PERIODSIGN = "\u0305";
     
     /**
      * Actual number
@@ -31,16 +47,6 @@ public class JNumber {
      * Start position of the repeating pattern (-1 for no period)
      */
     private int period = -1;
-    
-    /**
-     * English Number splitter
-     */
-    public static final String DOT = ".";
-    
-    /**
-     * European Number splitter
-     */
-    public static final String COMMA = ",";
     
     /**
      * Basic Constructor
@@ -206,7 +212,12 @@ public class JNumber {
      * @param number String Number
      */
     public final JNumber setNumber(String number) {
-        this.number = number.trim().replaceAll(" ", "").replaceAll("\t", "").replaceAll("\r", "").replaceAll("\n", "");
+        int index_point = indexOfPoint(number);
+        StaticStandard.logErr(number);
+        if(number.contains(PERIODSIGN) && index_point != -1) {
+            setPeriodStart(number.indexOf(PERIODSIGN) - index_point - 1);
+        }
+        this.number = number.trim().replaceAll(PERIODSIGN, "").replaceAll(" ", "").replaceAll("\t", "").replaceAll("\r", "").replaceAll("\n", "");
         return this;
     }
 
@@ -254,6 +265,16 @@ public class JNumber {
      * @return Integer Index of point
      */
     public final int indexOfPoint() {
+        return indexOfPoint(number);
+    }
+    
+    
+    /**
+     * Returns the index of the point
+     * @param number String number
+     * @return Integer Index of point
+     */
+    public static final int indexOfPoint(String number) {
         int index = number.indexOf(DOT);
         if(index == -1) {
             index = number.indexOf(COMMA);
@@ -284,7 +305,7 @@ public class JNumber {
             for(int i = 0; i < number.length(); i++) {
                 String temp_ = "" + number.charAt(i);
                 if((period != -1) && (i > (indexOfPoint() + period))) {
-                    temp += "\u0305";
+                    temp += PERIODSIGN;
                 }
                 if(temp_.equals(DOT) || temp_.equals(COMMA)) {
                     temp_ = point;
