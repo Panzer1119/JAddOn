@@ -269,11 +269,14 @@ public class JNumber {
     }
     
     public final String toStringFormatted(String point) {
-        if(period != -1) {
+        return String.format("Number: \"%s\", Number System: %s", toStringFormattedNumberOnly(point), number_system);
+    }
+    
+    public final String toStringFormattedNumberOnly(String point) {
             String temp = "";
             for(int i = 0; i < number.length(); i++) {
                 String temp_ = "" + number.charAt(i);
-                if(i > (indexOfPoint() + period)) {
+                if((period != -1) && (i > (indexOfPoint() + period))) {
                     temp += "\u0305";
                 }
                 if(temp_.equals(DOT) || temp_.equals(COMMA)) {
@@ -281,10 +284,7 @@ public class JNumber {
                 }
                 temp += temp_;
             }
-            return String.format("Number: \"%s\", Number System: %s", temp, number_system);
-        } else {
-            return toString();
-        }
+            return temp;
     }
     
 }
