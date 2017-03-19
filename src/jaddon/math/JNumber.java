@@ -24,7 +24,7 @@ public class JNumber {
     /**
      * Actual number system
      */
-    private NumberSystem number_system = NumberSystem.DECIMAL;
+    private NumeralSystem number_system = NumeralSystem.DECIMAL;
     
     
     /**
@@ -47,25 +47,25 @@ public class JNumber {
      */
     public JNumber() {
         number = "0";
-        number_system = NumberSystem.DECIMAL;
+        number_system = NumeralSystem.DECIMAL;
     }
     
     /**
      * Standard Constructor
      * @param number String Number
-     * @param number_system NumberSystem Number system
+     * @param number_system NumeralSystem Number system
      */
-    public JNumber(String number, NumberSystem number_system) {
+    public JNumber(String number, NumeralSystem number_system) {
         setNumber(number);
         setNumberSystem(number_system);
     }
     
     /**
      * Converts the actual number to another number system
-     * @param number_system NumberSystem Number system
+     * @param number_system NumeralSystem Number system
      * @return Boolean True if it worked False if not
      */
-    public final JNumber convertTo(NumberSystem number_system) {
+    public final JNumber convertTo(NumeralSystem number_system) {
         if(!isValidNumberSystem(number_system)) {
             return null;
         }
@@ -80,10 +80,10 @@ public class JNumber {
     /**
      * Converts the number to another number system
      * @param number JNumber Number to convert
-     * @param number_system NumberSystem Number system to convert to
+     * @param number_system NumeralSystem Number system to convert to
      * @return Boolean True if it worked False if not
      */
-    public static final JNumber convertFromTo(JNumber number, NumberSystem number_system) {
+    public static final JNumber convertFromTo(JNumber number, NumeralSystem number_system) {
         if(!isValidNumberSystem(number_system)) {
             return null;
         }
@@ -124,7 +124,7 @@ public class JNumber {
         final ArrayList<Integer> numbers_new_comma = new ArrayList<>();
         final ArrayList<BigDecimal> numbers_loop = new ArrayList<>();
         int loop_begin = -1;
-        if(number_system != NumberSystem.UNARY) {
+        if(number_system != NumeralSystem.UNARY) {
             boolean done = false;
             int i = 0;
             while(!done) {
@@ -178,7 +178,7 @@ public class JNumber {
      * @return String Number
      */
     public static final String getNumberSymbol(int number) {
-        return "" + NumberSystem.NUMBERSADVANCED.charAt(number);
+        return "" + NumeralSystem.NUMBERSADVANCED.charAt(number);
     }
     
     /**
@@ -190,7 +190,7 @@ public class JNumber {
         if(number.equals(DOT) || number.equals(COMMA)) {
             return -1;
         }
-        return NumberSystem.NUMBERSADVANCED.indexOf(number.toUpperCase());
+        return NumeralSystem.NUMBERSADVANCED.indexOf(number.toUpperCase());
     }
 
     /**
@@ -212,21 +212,21 @@ public class JNumber {
 
     /**
      * Returns the actual number system
-     * @return NumberSystem Number system
+     * @return NumeralSystem Number system
      */
-    public final NumberSystem getNumberSystem() {
+    public final NumeralSystem getNumberSystem() {
         return number_system;
     }
 
     /**
      * Sets the actual number system
-     * @param number_system NumberSystem Number system
+     * @param number_system NumeralSystem Number system
      */
-    public final JNumber setNumberSystem(NumberSystem number_system) {
+    public final JNumber setNumberSystem(NumeralSystem number_system) {
         if(isValidNumberSystem(number_system)) {
             this.number_system = number_system;
         } else {
-            this.number_system = NumberSystem.DECIMAL;
+            this.number_system = NumeralSystem.DECIMAL;
         }
         return this;
     }
@@ -263,10 +263,10 @@ public class JNumber {
     
     /**
      * Returns if a number system exists
-     * @param number_system NumberSystem Number system
+     * @param number_system NumeralSystem Number system
      * @return Boolean True if it is a valid number system False if not
      */
-    public static final boolean isValidNumberSystem(NumberSystem number_system) {
+    public static final boolean isValidNumberSystem(NumeralSystem number_system) {
         return number_system != null;
     }
     
