@@ -5,7 +5,6 @@
  */
 package jaddon.math;
 
-import jaddon.controller.StaticStandard;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
@@ -31,6 +30,8 @@ public class JNumber {
      * The Period letter
      */
     public static final String PERIODSIGN = "\u0305";
+    
+    private static final int PERIODREPEATING = 100;
     
     /**
      * Actual number
@@ -96,6 +97,12 @@ public class JNumber {
         final BigDecimal number_system_big = new BigDecimal("" + number_system.getSystem());
         final BigDecimal number_system_big_old = new BigDecimal("" + number.getNumberSystem().getSystem());
         String number_old = number.getNumber();
+        if(number.getPeriodStart() != -1) {
+            String period = number.getPeriod();
+            for(int i = 0; i < PERIODREPEATING; i++) {
+                number_old += period;
+            }
+        }
         final boolean isNegative = number.getNumber().startsWith("-");
         if(isNegative) {
             number_old = number_old.substring(1);
@@ -123,6 +130,9 @@ public class JNumber {
                 add = BigDecimal.valueOf(value).divide(number_system_big_old.pow(-1 * exponent));
             }
             number_complete = number_complete.add(add);
+        }
+        if(number.getPeriodStart() != -1) {
+            number_complete = number_complete.round(new MathContext(PERIODREPEATING));
         }
         BigInteger number_complete_pre_comma = number_complete.toBigInteger();
         BigDecimal number_complete_post_comma = number_complete.subtract(new BigDecimal(number_complete_pre_comma));
@@ -213,7 +223,6 @@ public class JNumber {
      */
     public final JNumber setNumber(String number) {
         int index_point = indexOfPoint(number);
-        StaticStandard.logErr(number);
         if(number.contains(PERIODSIGN) && index_point != -1) {
             setPeriodStart(number.indexOf(PERIODSIGN) - index_point - 1);
         }
@@ -258,6 +267,14 @@ public class JNumber {
     private final JNumber setPeriodStart(int period) {
         this.period = period;
         return this;
+    }
+    
+    public final String getPeriod() {
+        if(getPeriodStart() != -1) {
+            return getNumber().substring(indexOfPoint() + getPeriodStart() + 1);
+        } else {
+            return "";
+        }
     }
     
     /**
