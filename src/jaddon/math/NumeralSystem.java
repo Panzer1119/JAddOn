@@ -5,28 +5,30 @@
  */
 package jaddon.math;
 
+import jaddon.controller.StaticStandard;
+
 /**
  *
  * @author Paul
  */
 public enum NumeralSystem {
     
-    UNARY       (1),
-    BINARY      (2),
-    TERNARY     (3),
-    QUATERNARY  (4),
-    QUINARY     (5),
-    SENARY      (6),
-    SEPTARY     (7),
-    OCTAL       (8),
+    UNÄR       (1),
+    BINÄR      (2),
+    TERNÄR     (3),
+    QUATERNÄR  (4),
+    QUINÄR     (5),
+    SENÄR      (6),
+    SEPTÄR     (7),
+    OKTAL       (8),
     NONAL       (9),
-    DECIMAL     (10),
+    DEZIMAL     (10),
     SYSTEM11    (11),
-    DUODECIMAL  (12),
+    DUODEZIMAL  (12),
     SYSTEM13    (13),
     SYSTEM14    (14),
     SYSTEM15    (15),
-    HEXADECIMAL (16),
+    HEXADEZIMAL (16),
     SYSTEM17    (17),
     SYSTEM18    (18),
     SYSTEM19    (19),
@@ -58,7 +60,7 @@ public enum NumeralSystem {
      */
     public static final String NUMBERSADVANCED = NUMBERSNORMAL + "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     
-    public static final NumeralSystem[] ALLNUMBERSYSTEMS = new NumeralSystem[] {UNARY, BINARY, TERNARY, QUATERNARY, QUINARY, SENARY, SEPTARY, OCTAL, NONAL, DECIMAL, SYSTEM11, DUODECIMAL, SYSTEM13, SYSTEM14, SYSTEM15, HEXADECIMAL, SYSTEM17, SYSTEM18, SYSTEM19, SYSTEM20, SYSTEM21, SYSTEM22, SYSTEM23, SYSTEM24, SYSTEM25, SYSTEM26, SYSTEM27, SYSTEM28, SYSTEM29, SYSTEM30, SYSTEM31, SYSTEM32, SYSTEM33, SYSTEM34, SYSTEM35, SYSTEM36};
+    public static final NumeralSystem[] ALLNUMBERSYSTEMS = new NumeralSystem[] {UNÄR, BINÄR, TERNÄR, QUATERNÄR, QUINÄR, SENÄR, SEPTÄR, OKTAL, NONAL, DEZIMAL, SYSTEM11, DUODEZIMAL, SYSTEM13, SYSTEM14, SYSTEM15, HEXADEZIMAL, SYSTEM17, SYSTEM18, SYSTEM19, SYSTEM20, SYSTEM21, SYSTEM22, SYSTEM23, SYSTEM24, SYSTEM25, SYSTEM26, SYSTEM27, SYSTEM28, SYSTEM29, SYSTEM30, SYSTEM31, SYSTEM32, SYSTEM33, SYSTEM34, SYSTEM35, SYSTEM36};
     
     private final int system;
             
@@ -68,6 +70,14 @@ public enum NumeralSystem {
     
     public final int getSystem() {
         return system;
+    }
+    
+    @Override
+    public String toString() {
+        boolean german = StaticStandard.getLang().getLang().equalsIgnoreCase("DE");
+        String temp = (german ? name() : name().toLowerCase().replaceAll("är", "ary").replaceAll("z", "c").replaceAll("k", "c"));
+        temp = ("" + temp.charAt(0)).toUpperCase() + temp.substring(1);
+        return temp;
     }
     
 }
