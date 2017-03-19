@@ -75,7 +75,7 @@ public enum NumeralSystem {
     @Override
     public String toString() {
         boolean german = StaticStandard.getLang().getLang().equalsIgnoreCase("DE");
-        String temp = (german ? name() : name().toLowerCase().replaceAll("är", "ary").replaceAll("z", "c").replaceAll("k", "c"));
+        String temp = (german ? name().toLowerCase() : name().toLowerCase().replaceAll("är", "ary").replaceAll("z", "c").replaceAll("k", "c"));
         temp = ("" + temp.charAt(0)).toUpperCase() + temp.substring(1);
         return temp;
     }
