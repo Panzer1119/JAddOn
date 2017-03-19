@@ -190,7 +190,7 @@ public class JNumber {
         if(number.equals(DOT) || number.equals(COMMA)) {
             return -1;
         }
-        return NumberSystem.NUMBERSADVANCED.indexOf(number);
+        return NumberSystem.NUMBERSADVANCED.indexOf(number.toUpperCase());
     }
 
     /**
