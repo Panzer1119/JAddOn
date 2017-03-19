@@ -48,8 +48,14 @@ public enum NumberSystem {
     SYSTEM35    (35),
     SYSTEM36    (36);
     
+    /**
+     * All normal numbers from 0 to 9
+     */
     public static final String NUMBERSNORMAL = "0123456789";
     
+    /**
+     * All normal numbers from 0 to 9 and all advanced numbers from A to Z
+     */
     public static final String NUMBERSADVANCED = NUMBERSNORMAL + "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     
     private final int system;
