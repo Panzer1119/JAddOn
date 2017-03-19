@@ -41,7 +41,7 @@ public class JNumber {
     /**
      * Actual number system
      */
-    private NumeralSystem number_system = NumeralSystem.DECIMAL;
+    private NumeralSystem number_system = NumeralSystem.DEZIMAL;
     
     
     /**
@@ -54,7 +54,7 @@ public class JNumber {
      */
     public JNumber() {
         number = "0";
-        number_system = NumeralSystem.DECIMAL;
+        number_system = NumeralSystem.DEZIMAL;
     }
     
     /**
@@ -73,10 +73,20 @@ public class JNumber {
      * @return Boolean True if it worked False if not
      */
     public final JNumber convertTo(NumeralSystem number_system) {
+        return convertTo(number_system, NumeralSystem.NUMBERSADVANCED);
+    }
+    
+    /**
+     * Converts the actual number to another number system
+     * @param number_system NumeralSystem Number system
+     * @param alphabet String Alphabet
+     * @return Boolean True if it worked False if not
+     */
+    public final JNumber convertTo(NumeralSystem number_system, String alphabet) {
         if(!isValidNumberSystem(number_system)) {
             return null;
         }
-        JNumber number_c = convertFromTo(this, number_system);
+        JNumber number_c = convertFromTo(this, number_system, alphabet);
         if(number_c != null) {
             return number_c;
         } else {
@@ -85,12 +95,23 @@ public class JNumber {
     }
     
     /**
-     * Converts the number to another number system
+     * Converts the number to another number system using the normal numeral alphabet
      * @param number JNumber Number to convert
      * @param number_system NumeralSystem Number system to convert to
      * @return Boolean True if it worked False if not
      */
     public static final JNumber convertFromTo(JNumber number, NumeralSystem number_system) {
+        return convertFromTo(number, number_system, NumeralSystem.NUMBERSADVANCED);
+    }
+    
+    /**
+     * Converts the number to another number system using an alphabet
+     * @param number JNumber Number to convert
+     * @param number_system NumeralSystem Number system to convert to
+     * @param alphabet String Alphabet
+     * @return Boolean True if it worked False if not
+     */
+    public static final JNumber convertFromTo(JNumber number, NumeralSystem number_system, String alphabet) {
         if(!isValidNumberSystem(number_system)) {
             return null;
         }
@@ -121,7 +142,7 @@ public class JNumber {
             } else if((number_old.length() - i - 1) > index_point) {
                 i_ += 1;
             }
-            final int value = getNumberValue("" + number_old.charAt(number_old.length() - i - 1));
+            final int value = getNumberValue("" + number_old.charAt(number_old.length() - i - 1), alphabet);
             final int exponent = i_ - ((index_point != -1) ? (number_old.length() - index_point) : 0);
             BigDecimal add = null;
             if(exponent >= 0) {
@@ -140,7 +161,7 @@ public class JNumber {
         final ArrayList<Integer> numbers_new_comma = new ArrayList<>();
         final ArrayList<BigDecimal> numbers_loop = new ArrayList<>();
         int loop_begin = -1;
-        if(number_system != NumeralSystem.UNARY) {
+        if(number_system != NumeralSystem.UNÄR) {
             boolean done = false;
             int i = 0;
             while(!done) {
@@ -173,12 +194,12 @@ public class JNumber {
         }
         String number_end = "";
         for(int i = 0; i < numbers_new.size(); i++) {
-            number_end += getNumberSymbol(numbers_new.get(numbers_new.size() - i - 1));
+            number_end += getNumberSymbol(numbers_new.get(numbers_new.size() - i - 1), alphabet);
         }
         if(!numbers_new_comma.isEmpty()) {
             number_end += point;
             for(int i = 0; i < numbers_new_comma.size(); i++) {
-                number_end += getNumberSymbol(numbers_new_comma.get(i));
+                number_end += getNumberSymbol(numbers_new_comma.get(i), alphabet);
             }
         }
         if(isNegative) {
@@ -191,22 +212,24 @@ public class JNumber {
     /**
      * Returns the number symbol from 0 to Z
      * @param number Integer Number
+     * @param alphabet String Alphabet
      * @return String Number
      */
-    public static final String getNumberSymbol(int number) {
-        return "" + NumeralSystem.NUMBERSADVANCED.charAt(number);
+    public static final String getNumberSymbol(int number, String alphabet) {
+        return "" + alphabet.charAt(number);
     }
     
     /**
      * Returns the number value from 0 to 26
      * @param number String Number
+     * @param alphabet String Alphabet
      * @return Integer Number
      */
-    public static final int getNumberValue(String number) {
+    public static final int getNumberValue(String number, String alphabet) {
         if(number.equals(DOT) || number.equals(COMMA)) {
             return -1;
         }
-        return NumeralSystem.NUMBERSADVANCED.indexOf(number.toUpperCase());
+        return alphabet.indexOf(number.toUpperCase());
     }
 
     /**
@@ -246,7 +269,7 @@ public class JNumber {
         if(isValidNumberSystem(number_system)) {
             this.number_system = number_system;
         } else {
-            this.number_system = NumeralSystem.DECIMAL;
+            this.number_system = NumeralSystem.DEZIMAL;
         }
         return this;
     }
