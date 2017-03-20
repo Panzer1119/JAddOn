@@ -57,6 +57,19 @@ public class Alphabet extends HashMap<Integer, String> implements Serializable {
         return super.put(key, value);
     }
     
+    public Integer put(String key, Integer value) {
+        if(locked) {
+            return -1;
+        }
+        int value_old = -1;
+        if(containsValue(key)) {
+            value_old = getNumberValue(key);
+            remove(value_old);
+        }
+        put(value, key);
+        return value_old;
+    }
+    
     public final Alphabet put(Object[][] numbers) {
         if(locked) {
             return this;
