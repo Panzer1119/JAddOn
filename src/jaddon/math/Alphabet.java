@@ -166,7 +166,7 @@ public class Alphabet extends HashMap<Integer, String> implements Serializable {
         return true;
     }
     
-    public final boolean isAddingValid(String number_symbol, int number) {
+    public final boolean isAddingValid(int number, String number_symbol) {
         final String number_symbol_old = getNumberSymbol(number);
         if(number_symbol_old != null && !number_symbol_old.equals(number_symbol)) {
             return false;
@@ -175,7 +175,11 @@ public class Alphabet extends HashMap<Integer, String> implements Serializable {
         if(number_old != -1 && number_old != number) {
             return false;
         }
-        return true;
+        final Alphabet alphabet_temp_1 = copy();
+        final Alphabet alphabet_temp_2 = copy();
+        alphabet_temp_1.put(number, number_symbol);
+        alphabet_temp_2.put(number_symbol, number);
+        return alphabet_temp_1.isValid() && alphabet_temp_2.isValid();
     }
 
     public boolean isLocked() {
