@@ -110,8 +110,8 @@ public class JNumber {
         final BigDecimal number_system_big = new BigDecimal("" + number_system.getSystem());
         final BigDecimal number_system_big_old = new BigDecimal("" + number.getNumberSystem().getSystem());
         String number_old = number.getNumber();
+        final String period = number.getPeriod();
         if(number.getPeriodStart() != -1) {
-            String period = number.getPeriod();
             for(int i = 0; i < PERIODREPEATING; i++) {
                 number_old += period;
             }
@@ -145,7 +145,7 @@ public class JNumber {
             number_complete = number_complete.add(add);
         }
         if(number.getPeriodStart() != -1) {
-            number_complete = number_complete.round(new MathContext(PERIODREPEATING));
+            number_complete = number_complete.round(new MathContext(PERIODREPEATING * period.length()));
         }
         BigInteger number_complete_pre_comma = number_complete.toBigInteger();
         BigDecimal number_complete_post_comma = number_complete.subtract(new BigDecimal(number_complete_pre_comma));
