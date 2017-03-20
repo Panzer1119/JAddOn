@@ -15,6 +15,16 @@ import java.util.HashMap;
  */
 public class Alphabet extends HashMap<String, Integer> implements Serializable {
     
+    /**
+     * English Number splitter
+     */
+    public static final String DOT = ".";
+    
+    /**
+     * European Number splitter
+     */
+    public static final String COMMA = ",";
+    
     public Alphabet() {
         super();
     }
@@ -43,6 +53,26 @@ public class Alphabet extends HashMap<String, Integer> implements Serializable {
         return this;
     }
     
+    public final String getNumberSymbol(int number) {
+        if(number < 0 || !containsValue(number)) {
+            return null;
+        }
+        for(String g : keySet()) {
+            int n = get(g);
+            if(n == number) {
+                return g;
+            }
+        }
+        return null;
+    }
+    
+    public final int getNumberValue(String number) {
+        if(number.equals(DOT) || number.equals(COMMA)) {
+            return -1;
+        }
+        return get(number);
+    }
+    
     public final Object[][] toArray() {
         final Object[][] data = new Object[size()][2];
         int i = 0;
@@ -63,6 +93,8 @@ public class Alphabet extends HashMap<String, Integer> implements Serializable {
         for(int i : values()) {
             if(!numbers.contains(i)) {
                 numbers.add(i);
+            } else {
+                return false;
             }
         }
         numbers.sort((Integer o1, Integer o2) -> o1 - o2);
@@ -79,6 +111,9 @@ public class Alphabet extends HashMap<String, Integer> implements Serializable {
     public final boolean isPatternValid() {
         for(String g : keySet()) {
             for(char c : g.toCharArray()) {
+                if(c == COMMA.charAt(0) || c == DOT.charAt(0)) {
+                    return false;
+                }
                 for(String g_ : keySet()) {
                     if(g.equals(g_)) {
                         continue;

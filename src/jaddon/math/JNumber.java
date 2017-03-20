@@ -5,6 +5,9 @@
  */
 package jaddon.math;
 
+import static jaddon.math.Alphabet.COMMA;
+import static jaddon.math.Alphabet.DOT;
+import jaddon.utils.ArrayUtils;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
@@ -15,16 +18,6 @@ import java.util.ArrayList;
  * @author Paul
  */
 public class JNumber {
-    
-    /**
-     * English Number splitter
-     */
-    public static final String DOT = ".";
-    
-    /**
-     * European Number splitter
-     */
-    public static final String COMMA = ",";
     
     /**
      * The Period letter
@@ -82,7 +75,7 @@ public class JNumber {
      * @param alphabet String Alphabet
      * @return Boolean True if it worked False if not
      */
-    public final JNumber convertTo(NumeralSystem number_system, String alphabet) {
+    public final JNumber convertTo(NumeralSystem number_system, Alphabet alphabet) {
         if(!isValidNumberSystem(number_system)) {
             return null;
         }
@@ -111,7 +104,7 @@ public class JNumber {
      * @param alphabet String Alphabet
      * @return Boolean True if it worked False if not
      */
-    public static final JNumber convertFromTo(JNumber number, NumeralSystem number_system, String alphabet) {
+    public static final JNumber convertFromTo(JNumber number, NumeralSystem number_system, Alphabet alphabet) {
         if(!isValidNumberSystem(number_system)) {
             return null;
         }
@@ -142,7 +135,7 @@ public class JNumber {
             } else if((number_old.length() - i - 1) > index_point) {
                 i_ += 1;
             }
-            final int value = getNumberValue("" + number_old.charAt(number_old.length() - i - 1), alphabet);
+            final int value = alphabet.getNumberValue("" + number_old.charAt(number_old.length() - i - 1));
             final int exponent = i_ - ((index_point != -1) ? (number_old.length() - index_point) : 0);
             BigDecimal add = null;
             if(exponent >= 0) {
@@ -194,12 +187,12 @@ public class JNumber {
         }
         String number_end = "";
         for(int i = 0; i < numbers_new.size(); i++) {
-            number_end += getNumberSymbol(numbers_new.get(numbers_new.size() - i - 1), alphabet);
+            number_end += alphabet.getNumberSymbol(numbers_new.get(numbers_new.size() - i - 1));
         }
         if(!numbers_new_comma.isEmpty()) {
             number_end += point;
             for(int i = 0; i < numbers_new_comma.size(); i++) {
-                number_end += getNumberSymbol(numbers_new_comma.get(i), alphabet);
+                number_end += alphabet.getNumberSymbol(numbers_new_comma.get(i));
             }
         }
         if(isNegative) {
@@ -207,29 +200,6 @@ public class JNumber {
         }
         JNumber number_new = new JNumber(number_end, number_system).setPeriodStart(loop_begin);
         return number_new;
-    }
-    
-    /**
-     * Returns the number symbol from 0 to Z
-     * @param number Integer Number
-     * @param alphabet String Alphabet
-     * @return String Number
-     */
-    public static final String getNumberSymbol(int number, String alphabet) {
-        return "" + alphabet.charAt(number);
-    }
-    
-    /**
-     * Returns the number value from 0 to 26
-     * @param number String Number
-     * @param alphabet String Alphabet
-     * @return Integer Number
-     */
-    public static final int getNumberValue(String number, String alphabet) {
-        if(number.equals(DOT) || number.equals(COMMA)) {
-            return -1;
-        }
-        return alphabet.indexOf(number.toUpperCase());
     }
 
     /**
