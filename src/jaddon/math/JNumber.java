@@ -7,7 +7,6 @@ package jaddon.math;
 
 import static jaddon.math.Alphabet.COMMA;
 import static jaddon.math.Alphabet.DOT;
-import jaddon.utils.ArrayUtils;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
@@ -306,15 +305,15 @@ public class JNumber {
         return String.format("Number: \"%s\", Number System: %s", number, number_system);
     }
     
-    public final String toStringFormatted(String point) {
-        return String.format("Number: \"%s\", Number System: %s", toStringFormattedNumberOnly(point), number_system);
+    public final String toStringFormatted(String point, boolean show_period) {
+        return String.format("Number: \"%s\", Number System: %s", toStringFormattedNumberOnly(point, show_period), number_system);
     }
     
-    public final String toStringFormattedNumberOnly(String point) {
+    public final String toStringFormattedNumberOnly(String point, boolean show_period) {
             String temp = "";
             for(int i = 0; i < number.length(); i++) {
                 String temp_ = "" + number.charAt(i);
-                if((period != -1) && (i > (indexOfPoint() + period))) {
+                if(show_period && (period != -1) && (i > (indexOfPoint() + period))) {
                     temp += PERIODSIGN;
                 }
                 if(temp_.equals(DOT) || temp_.equals(COMMA)) {
