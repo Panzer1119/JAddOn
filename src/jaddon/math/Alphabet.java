@@ -24,6 +24,11 @@ public class Alphabet extends HashMap<String, Integer> implements Serializable {
         put(numbers);
     }
     
+    public final Alphabet copy() {
+        Alphabet alphabet_new = new Alphabet();
+        return alphabet_new;
+    }
+    
     public final Alphabet put(Object[][]... numbers) {
         for(Object[] number : numbers) {
             if(number.length != 2) {
@@ -36,6 +41,17 @@ public class Alphabet extends HashMap<String, Integer> implements Serializable {
             }
         }
         return this;
+    }
+    
+    public final Object[][] toArray() {
+        final Object[][] data = new Object[size()][2];
+        int i = 0;
+        for(String g : keySet()) {
+            data[i][0] = g;
+            data[i][1] = get(g);
+            i++;
+        }
+        return data;
     }
     
     public final boolean isValid() {
