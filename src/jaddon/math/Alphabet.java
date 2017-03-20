@@ -13,7 +13,7 @@ import java.util.HashMap;
  *
  * @author Paul
  */
-public class Alphabet extends HashMap<String, Integer> implements Serializable {
+public class Alphabet extends HashMap<Integer, String> implements Serializable {
     
     /**
      * English Number splitter
@@ -25,66 +25,86 @@ public class Alphabet extends HashMap<String, Integer> implements Serializable {
      */
     public static final String COMMA = ",";
     
+    private boolean locked = false;
+    
     public Alphabet() {
         super();
     }
     
-    public Alphabet(Object[][]... numbers) {
+    public Alphabet(Object[][] numbers) {
         super();
         put(numbers);
     }
     
     public final Alphabet copy() {
-        Alphabet alphabet_new = new Alphabet();
+        Alphabet alphabet_new = new Alphabet(toArray());
         return alphabet_new;
     }
     
     public final Alphabet add(Alphabet alphabet) {
+        if(locked) {
+            return this;
+        }
         put(alphabet.toArray());
         return this;
     }
+
+    @Override
+    public String put(Integer key, String value) {
+        if(locked) {
+            return null;
+        }
+        return super.put(key, value);
+    }
     
-    public final Alphabet put(Object[][]... numbers) {
+    public final Alphabet put(Object[][] numbers) {
+        if(locked) {
+            return this;
+        }
         for(Object[] number : numbers) {
             if(number.length != 2) {
                 continue;
             }
-            if(number[0] instanceof String && number[1] instanceof Integer) {
-                put((String) number[0], (Integer) number[1]);
-            } else if(number[0] instanceof Integer && number[1] instanceof String) {
-                put((String) number[1], (Integer) number[0]);
+            if(number[0] instanceof Integer && number[1] instanceof String) {
+                put((Integer) number[0], (String) number[1]);
+            } else if(number[0] instanceof String && number[1] instanceof Integer) {
+                put((Integer) number[1], (String) number[0]);
             }
         }
         return this;
     }
     
     public final String getNumberSymbol(int number) {
-        if(number < 0 || !containsValue(number)) {
+        if(number < 0 || !containsKey(number)) {
             return null;
         }
-        for(String g : keySet()) {
-            int n = get(g);
-            if(n == number) {
-                return g;
-            }
-        }
-        return null;
+        return get(number);
     }
     
     public final int getNumberValue(String number) {
         if(number.equals(DOT) || number.equals(COMMA)) {
             return -1;
         }
-        return get(number);
+        for(int i : keySet()) {
+            String g = get(i);
+            if(g.equals(number)) {
+                return i;
+            }
+        }
+        return -1;
     }
     
     public final Object[][] toArray() {
         final Object[][] data = new Object[size()][2];
-        int i = 0;
-        for(String g : keySet()) {
-            data[i][0] = g;
-            data[i][1] = get(g);
-            i++;
+        final ArrayList<Integer> numbers = new ArrayList<>();
+        for(int i : keySet()) {
+            numbers.add(i);
+        }
+        numbers.sort((Integer o1, Integer o2) -> o1 - o2);
+        int n = 0;
+        for(int i : numbers) {
+            data[n][0] = i;
+            data[n][1] = get(i);
         }
         return data;
     }
@@ -95,7 +115,7 @@ public class Alphabet extends HashMap<String, Integer> implements Serializable {
     
     public final boolean isNumbersValid() {
         final ArrayList<Integer> numbers = new ArrayList<>();
-        for(int i : values()) {
+        for(int i : keySet()) {
             if(!numbers.contains(i)) {
                 numbers.add(i);
             } else {
@@ -114,12 +134,12 @@ public class Alphabet extends HashMap<String, Integer> implements Serializable {
     }
     
     public final boolean isPatternValid() {
-        for(String g : keySet()) {
+        for(String g : values()) {
             for(char c : g.toCharArray()) {
                 if(c == COMMA.charAt(0) || c == DOT.charAt(0)) {
                     return false;
                 }
-                for(String g_ : keySet()) {
+                for(String g_ : values()) {
                     if(g.equals(g_)) {
                         continue;
                     }
@@ -142,6 +162,15 @@ public class Alphabet extends HashMap<String, Integer> implements Serializable {
             return false;
         }
         return true;
+    }
+
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public Alphabet setLocked(boolean locked) {
+        this.locked = locked;
+        return this;
     }
     
 }
