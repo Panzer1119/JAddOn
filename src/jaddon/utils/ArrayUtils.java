@@ -49,4 +49,23 @@ public class ArrayUtils {
         return result;
     }
     
+    /**
+     * This function returns the index of an object in an array
+     * @param <T> Generic Type
+     * @param array Array
+     * @param object Object to search for
+     * @return Integer Position (-1 for not existing)
+     */
+    public static final <T> int indexOf(T[] array, T object) {
+        if(array == null) {
+            return -1;
+        }
+        for(int i = 0; i < array.length; i++) {
+            if(array[i].equals(object)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    
 }
