@@ -39,6 +39,11 @@ public class Alphabet extends HashMap<String, Integer> implements Serializable {
         return alphabet_new;
     }
     
+    public final Alphabet add(Alphabet alphabet) {
+        put(alphabet.toArray());
+        return this;
+    }
+    
     public final Alphabet put(Object[][]... numbers) {
         for(Object[] number : numbers) {
             if(number.length != 2) {
