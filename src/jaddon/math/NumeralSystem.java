@@ -6,6 +6,7 @@
 package jaddon.math;
 
 import jaddon.controller.StaticStandard;
+import jaddon.utils.ArrayUtils;
 
 /**
  *
@@ -53,12 +54,12 @@ public enum NumeralSystem {
     /**
      * All normal numbers from 0 to 9
      */
-    public static final String NUMBERSNORMAL = "0123456789";
+    public static final String[] NUMBERSNORMAL = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
     
     /**
      * All normal numbers from 0 to 9 and all advanced numbers from A to Z
      */
-    public static final String NUMBERSADVANCED = NUMBERSNORMAL + "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    public static final String[] NUMBERSADVANCED = ArrayUtils.concat(NUMBERSNORMAL, new String[] {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"});
     
     public static final NumeralSystem[] ALLNUMBERSYSTEMS = new NumeralSystem[] {UNÄR, BINÄR, TERNÄR, QUATERNÄR, QUINÄR, SENÄR, SEPTÄR, OKTAL, NONAL, DEZIMAL, SYSTEM11, DUODEZIMAL, SYSTEM13, SYSTEM14, SYSTEM15, HEXADEZIMAL, SYSTEM17, SYSTEM18, SYSTEM19, SYSTEM20, SYSTEM21, SYSTEM22, SYSTEM23, SYSTEM24, SYSTEM25, SYSTEM26, SYSTEM27, SYSTEM28, SYSTEM29, SYSTEM30, SYSTEM31, SYSTEM32, SYSTEM33, SYSTEM34, SYSTEM35, SYSTEM36};
     
