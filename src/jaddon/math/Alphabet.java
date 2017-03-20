@@ -132,4 +132,16 @@ public class Alphabet extends HashMap<String, Integer> implements Serializable {
         return true;
     }
     
+    public final boolean isAddingValid(String number_symbol, int number) {
+        final String number_symbol_old = getNumberSymbol(number);
+        if(number_symbol_old != null && !number_symbol_old.equals(number_symbol)) {
+            return false;
+        }
+        final int number_old = getNumberValue(number_symbol);
+        if(number_old != -1 && number_old != number) {
+            return false;
+        }
+        return true;
+    }
+    
 }
