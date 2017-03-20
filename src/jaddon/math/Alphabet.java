@@ -81,7 +81,7 @@ public class Alphabet extends HashMap<Integer, String> implements Serializable {
             if(number[0] instanceof Integer && number[1] instanceof String) {
                 put((Integer) number[0], (String) number[1]);
             } else if(number[0] instanceof String && number[1] instanceof Integer) {
-                put((Integer) number[1], (String) number[0]);
+                put((String) number[0], (Integer) number[1]);
             }
         }
         return this;
@@ -118,6 +118,7 @@ public class Alphabet extends HashMap<Integer, String> implements Serializable {
         for(int i : numbers) {
             data[n][0] = i;
             data[n][1] = get(i);
+            n++;
         }
         return data;
     }
