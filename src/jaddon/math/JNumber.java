@@ -5,6 +5,7 @@
  */
 package jaddon.math;
 
+import jaddon.controller.StaticStandard;
 import static jaddon.math.Alphabet.COMMA;
 import static jaddon.math.Alphabet.DOT;
 import java.math.BigDecimal;
@@ -78,12 +79,7 @@ public class JNumber {
         if(!isValidNumberSystem(number_system)) {
             return null;
         }
-        JNumber number_c = convertFromTo(this, number_system, alphabet);
-        if(number_c != null) {
-            return number_c;
-        } else {
-            return null;
-        }
+        return convertFromTo(this, number_system, alphabet);
     }
     
     /**
@@ -129,10 +125,12 @@ public class JNumber {
         }
         for(int i = (number_old.length() - 1); i >= 0; i--) {
             int i_ = i;
-            if((number_old.length() - i - 1) == index_point) {
-                continue;
-            } else if((number_old.length() - i - 1) > index_point) {
-                i_ += 1;
+            if(index_point != -1) {
+                if((number_old.length() - i - 1) == index_point) {
+                    continue;
+                } else if((number_old.length() - i - 1) > index_point) {
+                    i_ += 1;
+                }
             }
             final int value = alphabet.getNumberValue("" + number_old.charAt(number_old.length() - i - 1));
             final int exponent = i_ - ((index_point != -1) ? (number_old.length() - index_point) : 0);
