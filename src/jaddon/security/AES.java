@@ -104,6 +104,16 @@ public class AES {
      * Encrypts a file (if it where one line)
      * @param fileToEncrypt File to encrypt
      * @param toSave File where the encrypted file will be saved
+     * @return File Encrypted file
+     */
+    public File encryptFile(File fileToEncrypt, File toSave) {
+        return encryptFile(fileToEncrypt, toSave, key);
+    }
+    
+    /**
+     * Encrypts a file (if it where one line)
+     * @param fileToEncrypt File to encrypt
+     * @param toSave File where the encrypted file will be saved
      * @param skey SecretKeySpec Key
      * @return File Encrypted file
      */
@@ -120,14 +130,28 @@ public class AES {
         }
     }
     
+    
     /**
-     * Encrypts a file (if it where one line)
-     * @param fileToEncrypt File to encrypt
-     * @param toSave File where the encrypted file will be saved
-     * @return File Encrypted file
+     * Encrypts bytes
+     * @param bytesToEncrypt Byte Array to encrypt
+     * @return Byte Array Encrypted bytes
      */
-    public File encryptFile(File fileToEncrypt, File toSave) {
-        return encryptFile(fileToEncrypt, toSave, key);
+    public byte[] encryptBytes(byte[] bytesToEncrypt) {
+        return encryptBytes(bytesToEncrypt, key);
+    }
+    
+    /**
+     * Encrypts bytes
+     * @param bytesToEncrypt Byte Array to encrypt
+     * @param skey SecretKeySpec Key
+     * @return Byte Array Encrypted bytes
+     */
+    public byte[] encryptBytes(byte[] bytesToEncrypt, SecretKeySpec skey) {
+        if(bytesToEncrypt.length == 0 || skey == null) {
+            StaticStandard.logErr("Error while encrypting bytes, something is wrong");
+            return null;
+        }
+        return doCrypto(Cipher.ENCRYPT_MODE, skey, bytesToEncrypt);
     }
     
     /**
@@ -165,7 +189,7 @@ public class AES {
      * @return File Decrypted file
      */
     public File decryptFile(File fileToDecrypt, File toSave, SecretKeySpec skey) {
-        if(fileToDecrypt == null || toSave == null || !fileToDecrypt.exists() || !fileToDecrypt.isFile() || (toSave.exists() && toSave.isDirectory())) {
+        if(fileToDecrypt == null || toSave == null || skey == null || !fileToDecrypt.exists() || !fileToDecrypt.isFile() || (toSave.exists() && toSave.isDirectory())) {
             StaticStandard.logErr("Error while decrypting file, something is wrong");
             return null;
         }
@@ -175,6 +199,29 @@ public class AES {
         } else {
             return null;
         }
+    }
+    
+    /**
+     * Decrypts bytes
+     * @param bytesToDecrypt Byte Array to decrypt
+     * @return Byte Array Decrypted bytes
+     */
+    public byte[] decryptBytes(byte[] bytesToDecrypt) {
+        return decryptBytes(bytesToDecrypt, key);
+    }
+    
+    /**
+     * Decrypts bytes
+     * @param bytesToDecrypt Byte Array to decrypt
+     * @param skey SecretKeySpec Key
+     * @return Byte Array Decrypted bytes
+     */
+    public byte[] decryptBytes(byte[] bytesToDecrypt, SecretKeySpec skey) {
+        if(bytesToDecrypt.length == 0 || skey == null) {
+            StaticStandard.logErr("Error while decrypting bytes, something is wrong");
+            return null;
+        }
+        return doCrypto(Cipher.DECRYPT_MODE, skey, bytesToDecrypt);
     }
 
     /**
@@ -225,6 +272,18 @@ public class AES {
         } catch (Exception ex) {
             StaticStandard.logErr("Error while de/encrypting file: " + ex, ex);
             return false;
+        }
+    }
+    
+    private static byte[] doCrypto(int cipherMode, SecretKeySpec secretKey, byte[] inputBytes) {
+        try {
+            Cipher cipher = Cipher.getInstance(AES);
+            cipher.init(cipherMode, secretKey);
+            byte[] outputBytes = cipher.doFinal(inputBytes);
+            return outputBytes;
+        } catch (Exception ex) {
+            StaticStandard.logErr("Error while de/encrypting bytes: " + ex, ex);
+            return null;
         }
     }
     
