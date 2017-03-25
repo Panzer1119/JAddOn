@@ -5,6 +5,7 @@
  */
 package jaddon.utils;
 
+import jaddon.controller.StaticStandard;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -16,6 +17,7 @@ import java.util.zip.ZipInputStream;
  * @author Paul
  */
 public class UnZipIt {
+    
      public static void unZip(File zip, File output) {
         byte[] buffer = new byte[1024];
         try {
@@ -23,7 +25,9 @@ public class UnZipIt {
                 output.mkdirs();
             }
             if(!output.isDirectory()) {
-                System.err.println("\"" + output.getAbsolutePath() + "\" isnt a directory");
+                if(StaticStandard.isIsIDE()) {
+                    StaticStandard.logErr("[" + UnZipIt.class.getSimpleName()+ "]: \"" + output.getAbsolutePath() + "\" isnt a directory");
+                }
                 return;
             }
             ZipInputStream zis = new ZipInputStream(new FileInputStream(zip));
@@ -35,7 +39,9 @@ public class UnZipIt {
                 }
                 String fileName = ze.getName();
                 File newFile = new File(output.getAbsolutePath() + File.separator + fileName);
-                System.out.println("File unzip: " + newFile.getAbsolutePath());
+                if(StaticStandard.isIsIDE()) {
+                    StaticStandard.log("[" + UnZipIt.class.getSimpleName()+ "]: File unzip: " + newFile.getAbsolutePath());
+                }
                 new File(newFile.getParent()).mkdirs();
                 FileOutputStream fos = new FileOutputStream(newFile);
                 int len;
@@ -48,7 +54,10 @@ public class UnZipIt {
             }
             zis.close();
         } catch (Exception ex) {
-            System.err.println(ex);
+            if(StaticStandard.isIsIDE()) {
+                StaticStandard.logErr("[" + UnZipIt.class.getSimpleName() + "]: Error: " + ex);
+            }
         }
     }
+     
 }
