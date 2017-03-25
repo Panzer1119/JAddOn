@@ -8,7 +8,6 @@ package jaddon.controller;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Image;
 import java.util.HashMap;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
