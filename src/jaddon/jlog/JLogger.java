@@ -11,20 +11,15 @@ import jaddon.controller.StaticStandard;
 import jaddon.controller.Update;
 import jaddon.jlang.JLang;
 import jaddon.utils.JUtils;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.InputStream;
-import java.io.PrintStream;
+
+import javax.swing.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -33,14 +28,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Locale;
 import java.util.Properties;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JFrame;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Style;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
 
 /**
  * This is an object to log data
@@ -1291,9 +1278,9 @@ public class JLogger implements ActionListener, KeyListener, Update, WindowListe
                 public void run() {
                     try {
                         if(system_old_in != null) {
-                            system_old_in.read(command.getBytes());
+                            system_old_in.read(command.getBytes());//FIXME WTF This does not sends data to the system_old_in stream, it reads data from it?!
                         } else {
-                            System.in.read(command.getBytes());
+                            System.in.read(command.getBytes()); //FIXME WTF This does not sends data to the System.in stream, it reads data from it?!
                         }
                     } catch (Exception ex) {
                         logErr(String.format(lang.getProperty("error_while_sending_a_command", "Error while sending a command: %s"), ex));
